@@ -31,15 +31,27 @@ class BasicBinaryPerceptron:
         cost = (self.pred != self.targets).sum()
         return cost
 
-
+  
     def compute_delta_cost(self, action):
         '''
         Compute delta cost of a given action
         '''
-        starting_cost = self.compute_cost()
+        common_addend = np.delete(self.X, action, axis=1) @ np.delete(self.weights, action, axis=0)
+        
+        # Current cost
+        starting_addend = self.X[:, action] * self.weights[action]
+        starting_pred = (common_addend + starting_addend) >= 0 
+        starting_cost = (starting_pred != self.targets).sum()
+
+        # Copying and making the change
         temp_problem = self.copy()
         temp_problem.accept_action(action)
-        new_cost = temp_problem.compute_cost()
+
+        # New Cost
+        new_addend = temp_problem.X[:, action] * self.weights[action]
+        new_pred = (common_addend + new_addend) >= 0 
+        new_cost = (new_pred != self.targets).sum()
+
         delta = (new_cost - starting_cost)
 
         return delta
@@ -70,8 +82,10 @@ class BasicBinaryPerceptron:
 
     def display(self):
         '''
-        Display the internal state of the problem
+        Display the current state
         '''
+        
+    
     def forward(self):
         '''
         Function that outputs the prediction in the current state

@@ -11,7 +11,7 @@ def simann(probl, beta0, beta1, annealing_steps=10, mcmc_steps = 10, seed = None
     cx = probl.compute_cost()
     print(f"Initial cost: {cx}")
     
-    best_route = probl.copy()
+    best_probl = probl.copy()
     best_cost = cx
     betas = np.zeros(annealing_steps)
     betas[:-1] = np.linspace(beta0, beta1, annealing_steps-1)
@@ -30,14 +30,14 @@ def simann(probl, beta0, beta1, annealing_steps=10, mcmc_steps = 10, seed = None
           
                 if cx < best_cost:
                     best_cost = cx
-                    best_route = probl.copy()
+                    best_probl = probl.copy()
 
-        best_route.display()
+        best_probl.display()
     
         print(f"beta = {beta}, c={cx}, best_c={best_cost}, accepted_freq={accepted_moves/mcmc_steps}")
     
         # stopping criterion -> maximum number of iteration reached
-    return (best_route, best_cost)
+    return (best_probl, best_cost)
 
 
 def accept_with_prob(delta_cost, beta):
