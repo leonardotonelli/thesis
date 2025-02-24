@@ -22,7 +22,8 @@ def simann(probl, beta0, beta1, annealing_steps=10, mcmc_steps = 10, seed = None
         for t in range(mcmc_steps):
             move = probl.propose_action()
             delta_c = probl.compute_delta_cost(move)
-            
+            print(delta_c)
+
             if accept_with_prob(delta_c, beta):
                 accepted_moves += 1
                 probl.accept_action(move)

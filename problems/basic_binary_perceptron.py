@@ -27,8 +27,9 @@ class BasicBinaryPerceptron:
         '''
         Define the cost function and computation
         '''
-        self.pred = self.forward()
-        cost = (self.pred != self.targets).sum()
+        self.frwd = self.forward()
+        wrong_bool = (self.frwd * self.targets) < 0
+        cost = wrong_bool.sum()
         return cost
 
 
@@ -77,5 +78,4 @@ class BasicBinaryPerceptron:
         Function that outputs the prediction in the current state
         '''
         intermediate = self.X @ self.weights
-        y = intermediate >= 0 
-        return y
+        return intermediate

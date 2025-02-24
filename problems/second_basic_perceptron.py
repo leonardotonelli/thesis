@@ -2,7 +2,7 @@ import numpy as np
 from copy import deepcopy
 import matplotlib.pyplot as plt
 
-class BasicBinaryPerceptron:
+class BinaryPerceptron:
     def __init__(self, n: int , P: int, seed: int):
         '''
         Initializations
@@ -27,8 +27,9 @@ class BasicBinaryPerceptron:
         '''
         Define the cost function and computation
         '''
-        self.pred = self.forward()
-        cost = (self.pred != self.targets).sum()
+        self.frwd = self.forward()
+        wrong_bool = (self.frwd * self.targets) < 0
+        cost = wrong_bool.sum()
         return cost
 
   
@@ -36,24 +37,34 @@ class BasicBinaryPerceptron:
         '''
         Compute delta cost of a given action
         '''
-        common_addend = np.delete(self.X, action, axis=1) @ np.delete(self.weights, action, axis=0)
-        
+        starting_cost = self.compute_cost()
+        temp_problem = self.copy()
+        temp_problem.accept_action(action)
+        new_cost = temp_problem.compute_cost()
+        delta = (new_cost - starting_cost)
+
+        common_addend = self.X @ self.weights - (self.X[:, action] * self.weights[action])
+
+
         # Current cost
         starting_addend = self.X[:, action] * self.weights[action]
-        starting_pred = (common_addend + starting_addend) >= 0 
-        starting_cost = (starting_pred != self.targets).sum()
+        starting_pred = (common_addend + starting_addend) 
+        starting_wrong_bool = (starting_pred * self.targets) < 0
+        starting_cost = starting_wrong_bool.sum()
 
         # Copying and making the change
         temp_problem = self.copy()
         temp_problem.accept_action(action)
 
         # New Cost
-        new_addend = temp_problem.X[:, action] * self.weights[action]
-        new_pred = (common_addend + new_addend) >= 0 
-        new_cost = (new_pred != self.targets).sum()
+        new_addend = temp_problem.X[:, action] * temp_problem.weights[action]
+        new_pred = (common_addend + new_addend)
+        new_wrong_bool = (new_pred * temp_problem.targets) < 0
+        new_cost = new_wrong_bool.sum()
 
-        delta = (new_cost - starting_cost)
+        delta_new = (new_cost - starting_cost)
 
+        print(f"New= {delta_new}, Correct = {delta}")
         return delta
 
 
@@ -91,5 +102,4 @@ class BasicBinaryPerceptron:
         Function that outputs the prediction in the current state
         '''
         intermediate = self.X @ self.weights
-        y = intermediate >= 0 
-        return y
+        return intermediate
