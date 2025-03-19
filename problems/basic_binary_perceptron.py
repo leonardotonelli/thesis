@@ -20,7 +20,7 @@ class BasicBinaryPerceptron:
         Initial configuration of the objective matrix
         '''
         self.X = np.random.normal(loc = 0, scale = 1, size = (self.P, self.n))
-        self.weights = np.random.choice([True, False], size=self.n)
+        self.weights = np.random.choice([-1,1], size=self.n)
 
 
     def compute_cost(self):
@@ -46,12 +46,11 @@ class BasicBinaryPerceptron:
         return delta
 
 
-
     def accept_action(self, action):
         '''
         Update the internal states given the taken action
         '''
-        self.weights[action] = not self.weights[action]
+        self.weights[action] = - self.weights[action]
 
 
     def propose_action(self):

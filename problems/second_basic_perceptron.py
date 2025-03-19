@@ -20,7 +20,7 @@ class BinaryPerceptron:
         Initial configuration of the objective matrix
         '''
         self.X = np.random.normal(loc = 0, scale = 1, size = (self.P, self.n))
-        self.weights = np.random.choice([True, False], size=self.n)
+        self.weights = np.random.choice([-1,1], size=self.n)
 
 
     def compute_cost(self):
@@ -35,45 +35,39 @@ class BinaryPerceptron:
   
     def compute_delta_cost(self, action):
         '''
-        Compute delta cost of a given action
+        Compute delta cost of a given action efficiently
         '''
-        starting_cost = self.compute_cost()
-        temp_problem = self.copy()
-        temp_problem.accept_action(action)
-        new_cost = temp_problem.compute_cost()
-        delta = (new_cost - starting_cost)
-
-        common_addend = self.X @ self.weights - (self.X[:, action] * self.weights[action])
-
-
-        # Current cost
-        starting_addend = self.X[:, action] * self.weights[action]
-        starting_pred = (common_addend + starting_addend) 
-        starting_wrong_bool = (starting_pred * self.targets) < 0
-        starting_cost = starting_wrong_bool.sum()
-
-        # Copying and making the change
-        temp_problem = self.copy()
-        temp_problem.accept_action(action)
-
-        # New Cost
-        new_addend = temp_problem.X[:, action] * temp_problem.weights[action]
-        new_pred = (common_addend + new_addend)
-        new_wrong_bool = (new_pred * temp_problem.targets) < 0
-        new_cost = new_wrong_bool.sum()
-
-        delta_new = (new_cost - starting_cost)
-
-        print(f"New= {delta_new}, Correct = {delta}")
+        # current pred
+        current_pred = self.X @ self.weights
+        # delta predictions mathematically correct
+        delta_pred = -2 * self.X[:, action] * self.weights[action]
+        # derive new pred from the delta
+        new_pred = current_pred + delta_pred.flatten()
+        #current cost
+        current_errors = (current_pred * self.targets) < 0
+        current_cost = np.sum(current_errors)
+        # new cost
+        new_errors = (new_pred * self.targets) < 0
+        new_cost = np.sum(new_errors)
+        # compute delta
+        delta = new_cost - current_cost
+        
+        # VERIFICATION CORRECTNESS
+        # temp_problem = self.copy()
+        # temp_problem.accept_action(action)
+        # verification_cost = temp_problem.compute_cost()
+        # original_cost = self.compute_cost()
+        # verification_delta = verification_cost - original_cost
+        # assert delta == verification_delta
+        
         return delta
-
 
 
     def accept_action(self, action):
         '''
         Update the internal states given the taken action
         '''
-        self.weights[action] = not self.weights[action]
+        self.weights[action] = - self.weights[action]
 
 
     def propose_action(self):
