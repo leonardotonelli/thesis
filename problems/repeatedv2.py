@@ -3,7 +3,7 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 
 class BinaryPerceptronRepeated:
-    def __init__(self, n: int , P: int, seed: int):
+    def __init__(self, n: int , P: int, seed: int = None):
         '''
         Initializations
         '''
@@ -11,14 +11,15 @@ class BinaryPerceptronRepeated:
         self.P = P
         self.alpha = P/n
         self.seed = seed
-        self.targets = np.random.choice([-1,1], size=P)
         self.weights = np.zeros(n)
 
 
-    def init_config(self):
+    def init_config(self, seed):
         '''
         Initial configuration of the objective matrix
         '''
+        np.random.seed(seed)
+        self.targets = np.random.choice([-1,1], size=self.P)
         self.X = np.random.normal(loc = 0, scale = 1, size = (self.P, self.n))
         self.weights = np.random.choice([-1,1], size=self.n)
 
@@ -30,7 +31,8 @@ class BinaryPerceptronRepeated:
         self.frwd = self.forward()
         wrong_bool = (self.frwd * self.targets) < 0
         cost = wrong_bool.sum()
-        return cost + gamma*distance
+        self.cost = cost + gamma*distance
+        return self.cost
 
   
     def compute_delta_cost(self, action, gamma, reference_weights):
@@ -80,11 +82,15 @@ class BinaryPerceptronRepeated:
         self.pred = self.pred + delta_pred
         self.weights[action] = - self.weights[action]
 
+        # self.cost = 
+
 
     def propose_action(self):
         '''
         Propose a move based on some criteria
         '''
+        if self.seed is not None:
+            np.random.seed(self.seed)
         index = np.random.choice(range(self.n), size=1)
         return index
 
