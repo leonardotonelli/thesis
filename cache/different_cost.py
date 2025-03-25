@@ -19,48 +19,57 @@ class BinaryPerceptron:
         '''
         Initial configuration of the objective matrix
         '''
-        self.X = np.random.normal(loc = 0, scale = 1, size = (self.P, self.n))
+        self.X = np.random.choice([-1,1], size = (self.P, self.n)) 
         self.weights = np.random.choice([-1,1], size=self.n)
+        self.pred = self.forward()
 
 
     def compute_cost(self):
         '''
         Define the cost function and computation
         '''
-        self.frwd = self.forward()
-        wrong_bool = (self.frwd * self.targets) < 0
-        cost = wrong_bool.sum()
-        return cost
+        x = -(self.pred * self.targets)
+        theta = x>0
+        cost = (x+1)/2 * theta
+        return cost.sum()
 
-  
+    
+    def min_switches(self, pred):
+        '''
+        Compute minimum switches cost giving a prediction and the self targets
+        '''
+        x = -(pred * self.targets)
+        theta = x>0
+        cost = ( (x+1)/2 ) * theta
+        return np.sum(cost)
+
+
     def compute_delta_cost(self, action):
         '''
         Compute delta cost of a given action efficiently
         '''
-        # current pred
+
         current_pred = self.pred
         # delta predictions mathematically correct
         delta_pred = -2 * self.X[:, action] * self.weights[action]
         # derive new pred from the delta
         new_pred = current_pred + delta_pred.flatten()
         #current cost
-        current_errors = (current_pred * self.targets) < 0
-        current_cost = np.sum(current_errors)
+        current_cost = self.min_switches(current_pred)
         # new cost
-        new_errors = (new_pred * self.targets) < 0
-        new_cost = np.sum(new_errors)
+        new_cost = self.min_switches(new_pred)
         # compute delta
-        delta = new_cost - current_cost
-        
+        delta2 = new_cost - current_cost
+
         # VERIFICATION CORRECTNESS
-        # temp_problem = self.copy()
-        # temp_problem.accept_action(action)
-        # verification_cost = temp_problem.compute_cost()
-        # original_cost = self.compute_cost()
-        # verification_delta = verification_cost - original_cost
-        # assert delta == verification_delta
+        temp_problem = self.copy()
+        temp_problem.accept_action(action)
+        verification_cost = temp_problem.compute_cost()
+        original_cost = self.compute_cost()
+        verification_delta = verification_cost - original_cost
+        assert delta2 == verification_delta
         
-        return delta
+        return delta2
 
 
     def accept_action(self, action):

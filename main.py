@@ -1,7 +1,7 @@
 from solutions.simann import simann
 # from problems.basic_binary_perceptron import BasicBinaryPerceptron
 # from problems.second_basic_perceptron import BinaryPerceptron
-from problems.v3 import BinaryPerceptron
+from problems.v2 import BinaryPerceptron
 
 n = 3
 P = 3
