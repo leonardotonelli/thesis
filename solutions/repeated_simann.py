@@ -28,7 +28,7 @@ class RepeatedSimann:
         for i, replica in enumerate(self.replicas):
             replica.init_config(seed)
             self.costs[i] = replica.compute_cost(0, 0) # set gamma and distance at zero because they are all at the same spot
-            self.replicas_weights[i] = replica.weights
+            self.replicas_weights[:,i] = replica.weights
         
 
     def compute_best_cost(self, gamma, distance):
@@ -38,9 +38,11 @@ class RepeatedSimann:
         best = np.inf
         for i, replica in enumerate(self.replicas):
             cost = replica.compute_cost(gamma, distance)
+            # print(f"cost for replica {i}: {cost}")
             if cost < best:
-                best = i
-        return best, i 
+                best = cost
+                best_replica = replica
+        return best, best_replica
     
     
     def compute_reference(self):
@@ -57,16 +59,17 @@ class RepeatedSimann:
         '''
         replica_index = np.random.randint(self.num_replicas)
         action = self.replicas[replica_index].propose_action()
+        # print(f"Proposed action: {action}")
 
         return replica_index, action
 
 
-    def compute_delta_cost(self, replica_index, action, gamma, reference_weights):
+    def compute_delta_cost(self, replica_index, action, gamma):
         '''
         compute delta cost for the given replica, move and the reference weights
         '''
         reference_weights = self.reference
-        delta_cost = self.replica[replica_index].compute_delta_cost(action, gamma, reference_weights)
+        delta_cost = self.replicas[replica_index].compute_delta_cost(action, gamma, reference_weights)
         return delta_cost
 
 
@@ -76,7 +79,7 @@ class RepeatedSimann:
         '''
         self.replicas[replica_index].accept_action(action)
         self.costs[replica_index] = self.replicas[replica_index].cost
-        self.replicas_weights[replica_index] = self.replicas[replica_index].weights
+        self.replicas_weights[:, replica_index] = self.replicas[replica_index].weights
 
 
     def get_replica(self, replica_index):
@@ -91,14 +94,10 @@ class RepeatedSimann:
         return whether the replicas are converged or not 
         '''
         weights = self.replicas_weights
-        return np.all(weights == weights[0,:], axis = 0)
+        converged = np.prod(np.all(weights == weights[0,:], axis = 0))
+        return converged
 
     
-     
-    
-
-
-
 def repeated_simann(probl, beta0, beta1, gamma0, gamma1, annealing_steps = 10, scooping_steps = 10, mcmc_steps = 10, seed = None):
     
     if seed != None:
@@ -108,7 +107,7 @@ def repeated_simann(probl, beta0, beta1, gamma0, gamma1, annealing_steps = 10, s
     probl.init_config()
 
     # compute the best initial cost for every replica (the same)
-    best_cost, best_replica_index = probl.compute_best_cost(0,0)
+    best_cost, best_replica = probl.compute_best_cost(0,0)
     print(f"Initial cost: {best_cost}")
 
     # pick the replica with lowest cost? Not really needed.
@@ -153,12 +152,12 @@ def repeated_simann(probl, beta0, beta1, gamma0, gamma1, annealing_steps = 10, s
         best_replica.display()
         print(f"beta = {betas[i]}, gamma = {gammas[i]}, c={cx}, best_c={best_cost}, accepted_freq={accepted_moves/mcmc_steps}")
         
-        # function to define whether the replica converged or not
-        converged = probl.get_convergence_status()
-        if converged:
-            print("The replica converged to the same final assignment")
-        else:
-            print("The replicas did not converge")
+    # function to define whether the replica converged or not
+    converged = probl.get_convergence_status()
+    if converged:
+        print("The replica converged to the same final assignment")
+    else:
+        print("The replicas did not converge")
 
         # stopping criterion -> maximum number of iteration reached
     return (best_replica, best_cost)

@@ -27,8 +27,8 @@ class BinaryPerceptron:
         '''
         Define the cost function and computation
         '''
-        self.frwd = self.forward()
-        wrong_bool = (self.frwd * self.targets) < 0
+        self.pred = self.forward()
+        wrong_bool = (self.pred * self.targets) < 0
         cost = wrong_bool.sum()
         return cost
 

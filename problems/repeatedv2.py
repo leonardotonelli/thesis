@@ -20,7 +20,7 @@ class BinaryPerceptronRepeated:
         '''
         np.random.seed(seed)
         self.targets = np.random.choice([-1,1], size=self.P)
-        self.X = np.random.normal(loc = 0, scale = 1, size = (self.P, self.n))
+        self.X = np.random.choice([-1,1], size = (self.P, self.n))
         self.weights = np.random.choice([-1,1], size=self.n)
 
 
@@ -28,8 +28,8 @@ class BinaryPerceptronRepeated:
         '''
         Define the cost function and computation
         '''
-        self.frwd = self.forward()
-        wrong_bool = (self.frwd * self.targets) < 0
+        self.pred = self.forward()
+        wrong_bool = (self.pred * self.targets) < 0
         cost = wrong_bool.sum()
         self.cost = cost + gamma*distance
         return self.cost
@@ -82,7 +82,8 @@ class BinaryPerceptronRepeated:
         self.pred = self.pred + delta_pred
         self.weights[action] = - self.weights[action]
 
-        # self.cost = 
+        new_errors = (self.pred * self.targets) < 0
+        self.cost = np.sum(new_errors)
 
 
     def propose_action(self):
