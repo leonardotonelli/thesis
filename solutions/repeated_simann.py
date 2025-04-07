@@ -12,6 +12,7 @@ class RepeatedSimann:
         self.seed = seed
         self.costs = np.zeros(num_replicas)
         self.replicas_weights = np.zeros(shape=(n, num_replicas))
+        self.replicas_targets = np.zeros(shape=(P, num_replicas))
 
     def init_config(self):
         '''
@@ -29,6 +30,12 @@ class RepeatedSimann:
             replica.init_config(seed)
             self.costs[i] = replica.compute_cost(0, 0) # set gamma and distance at zero because they are all at the same spot
             self.replicas_weights[:,i] = replica.weights
+            self.replicas_targets[:,i] = replica.targets
+
+            # check that inizializations are all the same
+            assert np.all(self.replicas_weights[:,i] == self.replicas_weights[:,0])
+            assert np.all(self.replicas_targets[:,i] == self.replicas_targets[:,0])
+            assert np.all(replica.X == self.replicas[0].X)
         
 
     def compute_best_cost(self, gamma, distance):
@@ -38,7 +45,6 @@ class RepeatedSimann:
         best = np.inf
         for i, replica in enumerate(self.replicas):
             cost = replica.compute_cost(gamma, distance)
-            # print(f"cost for replica {i}: {cost}")
             if cost < best:
                 best = cost
                 best_replica = replica
@@ -59,7 +65,6 @@ class RepeatedSimann:
         '''
         replica_index = np.random.randint(self.num_replicas)
         action = self.replicas[replica_index].propose_action()
-        # print(f"Proposed action: {action}")
 
         return replica_index, action
 
@@ -146,10 +151,10 @@ def repeated_simann(probl, beta0, beta1, gamma0, gamma1, annealing_steps = 10, s
 
                 if cx < best_cost:
                     best_cost = cx
-                    best_replica = probl.get_replica(replica_index)
+                    best_replica = probl.get_replica(replica_index).copy()
 
 
-        best_replica.display()
+        best_replica.display() # TODO
         print(f"beta = {betas[i]}, gamma = {gammas[i]}, c={cx}, best_c={best_cost}, accepted_freq={accepted_moves/mcmc_steps}")
         
     # function to define whether the replica converged or not

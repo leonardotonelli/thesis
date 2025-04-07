@@ -31,8 +31,9 @@ class BinaryPerceptronRepeated:
         self.pred = self.forward()
         wrong_bool = (self.pred * self.targets) < 0
         cost = wrong_bool.sum()
-        self.cost = cost + gamma*distance
-        return self.cost
+        self.cost = cost
+        new_c = cost + gamma*distance
+        return new_c
 
   
     def compute_delta_cost(self, action, gamma, reference_weights):
@@ -41,33 +42,33 @@ class BinaryPerceptronRepeated:
         '''
         # current pred
         current_pred = self.pred
+        current_cost = self.cost
+
         # delta predictions mathematically correct
         delta_pred = -2 * self.X[:, action] * self.weights[action]
         # derive new pred from the delta
         new_pred = current_pred + delta_pred.flatten()
-        #current cost
-        current_errors = (current_pred * self.targets) < 0
-        current_cost = np.sum(current_errors)
-        # new cost
         new_errors = (new_pred * self.targets) < 0
         new_cost = np.sum(new_errors)
+        
         # compute delta
         delta = new_cost - current_cost
         
+        # compute the final delta incorporating the gamma parameter
         final_delta = delta + gamma * (2*self.weights[action]*reference_weights[action])
 
 
         # VERIFICATION CORRECTNESS
-        # distance1 = self.compute_distance(reference_weights)
+        distance1 = self.compute_distance(reference_weights)
 
-        # # current pred
-        # starting_cost = self.compute_cost(gamma, distance1)
-        # temp_problem = self.copy()
-        # temp_problem.accept_action(action)
+        # current pred
+        starting_cost = self.compute_cost(gamma, distance1)
+        temp_problem = self.copy()
+        temp_problem.accept_action(action)
 
-        # distance2 = temp_problem.compute_distance(reference_weights)
-        # new_cost = temp_problem.compute_cost(gamma, distance2)
-        # delta_real = (new_cost - starting_cost)
+        distance2 = temp_problem.compute_distance(reference_weights)
+        new_cost = temp_problem.compute_cost(gamma, distance2)
+        delta_real = (new_cost - starting_cost)
 
         # assert delta_real == final_delta
         
@@ -78,10 +79,14 @@ class BinaryPerceptronRepeated:
         '''
         Update the internal states given the taken action
         '''
+        # update predictions
         delta_pred = (-2 * self.X[:, action] * self.weights[action]).flatten()
         self.pred = self.pred + delta_pred
+
+        # update weights
         self.weights[action] = - self.weights[action]
 
+        # update cost
         new_errors = (self.pred * self.targets) < 0
         self.cost = np.sum(new_errors)
 
@@ -113,7 +118,6 @@ class BinaryPerceptronRepeated:
         '''
         Display the current state
         '''
-        
     
     def forward(self):
         '''
