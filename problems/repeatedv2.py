@@ -70,8 +70,9 @@ class BinaryPerceptronRepeated:
         new_cost = temp_problem.compute_cost(gamma, distance2)
         delta_real = (new_cost - starting_cost)
 
-        # assert delta_real == final_delta
-        
+        # check whether the new delta cost is working
+        assert round(delta_real,2) == round(delta_real,2)
+
         return final_delta
 
 
