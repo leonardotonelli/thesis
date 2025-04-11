@@ -140,7 +140,7 @@ def repeated_simann(probl, beta0, beta1, gamma0, gamma1, annealing_steps = 10, s
             replica_index, action = probl.propose_action() 
 
             # compute delta cost for the given replica, move and the reference weights
-            delta_c = probl.compute_delta_cost(replica_index, action, gammas[i])
+            delta_c = probl.compute_delta_cost(replica_index, action, gammas[i]/betas[i])
 
             if accept_with_prob(delta_c, betas[i]):
                 accepted_moves += 1

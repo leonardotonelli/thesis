@@ -57,7 +57,6 @@ class BinaryPerceptronRepeated:
         # compute the final delta incorporating the gamma parameter
         final_delta = delta + gamma * (2*self.weights[action]*reference_weights[action])
 
-
         # VERIFICATION CORRECTNESS
         distance1 = self.compute_distance(reference_weights)
 
@@ -105,7 +104,7 @@ class BinaryPerceptronRepeated:
         ''' 
         Function that computes the distance between the given replica to the reference
         '''
-        d = np.sum((self.weights - reference_weights)**2)/2
+        d = np.sum((self.weights - reference_weights)**2)/2 ## 
         return d
 
     def copy(self):
