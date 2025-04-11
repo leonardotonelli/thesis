@@ -3,7 +3,7 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 
 class BinaryPerceptronRepeated:
-    def __init__(self, n: int , P: int, seed: int = None):
+    def __init__(self, n: int , P: int, seed = None):
         '''
         Initializations
         '''
@@ -30,7 +30,7 @@ class BinaryPerceptronRepeated:
         '''
         self.pred = self.forward()
         wrong_bool = (self.pred * self.targets) < 0
-        cost = wrong_bool.sum()
+        cost = int(wrong_bool.sum())
         self.cost = cost
         new_c = cost + gamma*distance
         return new_c
@@ -49,7 +49,7 @@ class BinaryPerceptronRepeated:
         # derive new pred from the delta
         new_pred = current_pred + delta_pred.flatten()
         new_errors = (new_pred * self.targets) < 0
-        new_cost = np.sum(new_errors)
+        new_cost = int(np.sum(new_errors))
         
         # compute delta
         delta = new_cost - current_cost
