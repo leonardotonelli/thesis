@@ -47,6 +47,6 @@ def accept_with_prob(delta_cost, beta):
         return False
     
     prob = np.exp(-beta * delta_cost)
-    return np.random.randn() < prob
+    return np.random.random() < prob
 
 

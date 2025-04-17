@@ -1,6 +1,115 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from problems.repeatedv2 import BinaryPerceptronRepeated
+from copy import deepcopy
+
+# SAME AS THE MAIN, BUT WITH SEPARATED DELTAS - CALCULATIONS CORRESPOND TO DELTA CALCULATED FROM EQUATION 1 OF S6
+
+class BinaryPerceptronRepeated:
+    def __init__(self, n: int , P: int, seed = None):
+        '''
+        Initializations
+        '''
+        self.n = n
+        self.P = P
+        self.alpha = P/n
+        self.seed = seed
+        self.weights = np.zeros(n)
+
+
+    def init_config(self, seed):
+        '''
+        Initial configuration of the objective matrix
+        '''
+        np.random.seed(seed)
+        self.targets = np.random.choice([-1,1], size=self.P)
+        self.X = np.random.choice([-1,1], size = (self.P, self.n))
+        self.weights = np.random.choice([-1,1], size=self.n)
+
+
+    def compute_cost(self):
+        '''
+        Define the cost function and computation
+        '''
+        self.pred = self.forward()
+        wrong_bool = (self.pred * self.targets) < 0
+        cost = int(wrong_bool.sum())
+        self.cost = cost
+        new_c = cost 
+        return new_c
+
+  
+    def compute_delta_cost(self, action, reference_weights):
+        '''
+        Compute delta cost of a given action efficiently
+        '''
+        # current pred
+        current_pred = self.pred
+        current_cost = self.cost
+
+        # delta predictions mathematically correct
+        delta_pred = -2 * self.X[:, action] * self.weights[action]
+        # derive new pred from the delta
+        new_pred = current_pred + delta_pred.flatten()
+        new_errors = (new_pred * self.targets) < 0
+        new_cost = int(np.sum(new_errors))
+        
+        # compute delta
+        delta_energy = new_cost - current_cost
+        delta_reference = (2*self.weights[action]*reference_weights[action])
+
+        return delta_energy, delta_reference
+
+
+    def accept_action(self, action):
+        '''
+        Update the internal states given the taken action
+        '''
+        # update predictions
+        delta_pred = (-2 * self.X[:, action] * self.weights[action]).flatten()
+        self.pred = self.pred + delta_pred
+
+        # update weights
+        self.weights[action] = - self.weights[action]
+
+        # update cost
+        new_errors = (self.pred * self.targets) < 0
+        self.cost = np.sum(new_errors)
+
+
+    def propose_action(self):
+        '''
+        Propose a move based on some criteria
+        '''
+        if self.seed is not None:
+            np.random.seed(self.seed)
+        index = np.random.choice(range(self.n), size=1)
+        return index
+
+    def compute_distance(self, reference_weights):
+        ''' 
+        Function that computes the distance between the given replica to the reference
+        '''
+        d = np.sum((self.weights - reference_weights)**2)/2 ## 
+        return d
+
+    def copy(self):
+        '''
+        Copy the whole problem
+        '''
+        return deepcopy(self)
+
+
+    def display(self):
+        '''
+        Display the current state
+        '''
+    
+    def forward(self):
+        '''
+        Function that outputs the prediction in the current state
+        '''
+        intermediate = self.X @ self.weights
+        return intermediate
 
 
 class RepeatedSimann:
@@ -28,7 +137,7 @@ class RepeatedSimann:
 
         for i, replica in enumerate(self.replicas):
             replica.init_config(seed)
-            self.costs[i] = replica.compute_cost(0, 0) # set gamma and distance at zero because they are all at the same spot
+            self.costs[i] = replica.compute_cost() 
             self.replicas_weights[:,i] = replica.weights
             self.replicas_targets[:,i] = replica.targets
 
@@ -57,25 +166,15 @@ class RepeatedSimann:
         '''
         mean = np.mean(self.replicas_weights, axis=1)
         self.reference = mean
-        
-        
-    def propose_action(self):
-        '''
-        get a random replica and propose a random (for now) move
-        '''
-        replica_index = np.random.randint(self.num_replicas)
-        action = self.replicas[replica_index].propose_action()
-
-        return replica_index, action
 
 
-    def compute_delta_cost(self, replica_index, action, gamma):
+    def compute_deltas(self, replica_index, action):
         '''
         compute delta cost for the given replica, move and the reference weights
         '''
         reference_weights = self.reference
-        delta_cost = self.replicas[replica_index].compute_delta_cost(action, gamma, reference_weights)
-        return delta_cost
+        delta_energy, delta_reference = self.replicas[replica_index].compute_delta_cost(action, reference_weights)
+        return delta_energy, delta_reference
 
 
     def accept_action(self, replica_index, action):
@@ -136,26 +235,27 @@ def repeated_simann(probl, beta0, beta1, gamma0, gamma1, annealing_steps = 10, s
             # compute the reference replica (only average for now)
             probl.compute_reference()
 
-            # get a random replica and propose a random (for now) move
-            replica_index, action = probl.propose_action() 
+            for replica_index, replica in enumerate(probl.replicas):
 
-            # compute delta cost for the given replica, move and the reference weights
-            delta_c = probl.compute_delta_cost(replica_index, action, gammas[i]/betas[i])
+                # get a random replica and propose a random (for now) move
+                action = replica.propose_action() 
 
-            if accept_with_prob(delta_c, betas[i]):
-                accepted_moves += 1
+                # compute delta cost for the given replica, move and the reference weights
+                deltas = probl.compute_deltas(replica_index, action)
 
-                # accept the move for the specific replica only
-                probl.accept_action(replica_index, action) 
-                cx = probl.costs[replica_index]
+                if accept_with_prob(deltas, betas[i], gammas[i]):
+                    accepted_moves += 1
 
-                if cx < best_cost:
-                    best_cost = cx
-                    best_replica = probl.get_replica(replica_index).copy()
-                    if best_cost == 0:
-                        print(f"Solved. After {i} annealing steps.")
-                        return (best_replica, best_cost)
+                    # accept the move for the specific replica only
+                    probl.accept_action(replica_index, action) 
+                    cx = probl.costs[replica_index]
 
+                    if cx < best_cost:
+                        best_cost = cx
+                        best_replica = probl.get_replica(replica_index).copy()
+                        if best_cost == 0:
+                            print("Solved.")
+                            return (best_replica, best_cost)
 
         best_replica.display() # TODO
         print(f"beta = {betas[i]}, gamma = {gammas[i]}, c={cx}, best_c={best_cost}, accepted_freq={accepted_moves/mcmc_steps*probl.num_replicas}")
@@ -171,13 +271,15 @@ def repeated_simann(probl, beta0, beta1, gamma0, gamma1, annealing_steps = 10, s
     return (best_replica, best_cost)
 
 
-def accept_with_prob(delta_cost, beta):
-    if delta_cost <= 0:
+def accept_with_prob(deltas, beta, gamma):
+    delta_energy, delta_reference = deltas
+    if delta_energy <= 0:
         return True
     if beta == np.inf:
         return False
     
-    prob = np.exp(-beta * delta_cost)
+
+    prob = np.exp(-beta * delta_energy + gamma* delta_reference)
     return np.random.random() < prob
 
 

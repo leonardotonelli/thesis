@@ -55,7 +55,7 @@ class BinaryPerceptronRepeated:
         delta = new_cost - current_cost
         
         # compute the final delta incorporating the gamma parameter
-        final_delta = delta + gamma * (2*self.weights[action]*reference_weights[action])
+        final_delta = float(delta + gamma * (2*self.weights[action]*reference_weights[action]))
 
         # VERIFICATION CORRECTNESS
         distance1 = self.compute_distance(reference_weights)
@@ -63,14 +63,14 @@ class BinaryPerceptronRepeated:
         # current pred
         starting_cost = self.compute_cost(gamma, distance1)
         temp_problem = self.copy()
-        temp_problem.accept_action(action)
+        temp_problem.accept_action(action)  
 
         distance2 = temp_problem.compute_distance(reference_weights)
         new_cost = temp_problem.compute_cost(gamma, distance2)
         delta_real = (new_cost - starting_cost)
 
         # check whether the new delta cost is working
-        assert round(delta_real,2) == round(delta_real,2)
+        assert round(delta_real,2) == round(final_delta,2)
 
         return final_delta
 
