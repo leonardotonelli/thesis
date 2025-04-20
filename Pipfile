@@ -5,11 +5,11 @@ name = "pypi"
 
 [packages]
 numpy = "*"
-ipykernel = "*"
 matplotlib = "*"
+ipykernel = "*"
 
 [dev-packages]
 ipykernel = "*"
 
 [requires]
-python_version = "3.12"
+python_version = "3.13"
