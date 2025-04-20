@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from problems.repeatedv2 import BinaryPerceptronRepeated
+from problems.perceptron_repeated import BinaryPerceptronRepeated
 
 
 class RepeatedSimann:
