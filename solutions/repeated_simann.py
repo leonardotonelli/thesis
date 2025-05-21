@@ -53,7 +53,7 @@ class RepeatedSimann:
     
     def compute_reference(self):
         '''
-        compute the reference replica (only average for now)
+        compute the reference replica (only average)
         '''
         mean = np.mean(self.replicas_weights, axis=1)
         self.reference = mean
@@ -61,7 +61,7 @@ class RepeatedSimann:
         
     def propose_action(self):
         '''
-        get a random replica and propose a random (for now) move
+        get a random replica and propose a random move
         '''
         replica_index = np.random.randint(self.num_replicas)
         action = self.replicas[replica_index].propose_action()
@@ -96,7 +96,7 @@ class RepeatedSimann:
 
     def get_convergence_status(self):
         '''
-        return whether the replicas are converged or not 
+        return whether the replicas converged or not 
         '''
         weights = self.replicas_weights
         converged = np.prod(np.all(weights == weights[0,:], axis = 0))
@@ -115,10 +115,6 @@ def repeated_simann(probl, beta0, beta1, gamma0, gamma1, annealing_steps = 10, s
     best_cost, best_replica = probl.compute_best_cost(0,0)
     print(f"Initial cost: {best_cost}")
 
-    # pick the replica with lowest cost? Not really needed.
-    # best_probl = probl.copy() 
-    # best_cost = cx
-
     # set all the betas to use for annealing
     betas = np.zeros(annealing_steps)
     betas[:-1] = np.linspace(beta0, beta1, annealing_steps-1)
@@ -131,7 +127,7 @@ def repeated_simann(probl, beta0, beta1, gamma0, gamma1, annealing_steps = 10, s
 
     for i in range(annealing_steps): # assume that annealing steps are the same for scooping for now
         accepted_moves = 0
-        for t in range(mcmc_steps):
+        for t in range(mcmc_steps): 
 
             # compute the reference replica (only average for now)
             probl.compute_reference()
