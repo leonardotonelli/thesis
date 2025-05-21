@@ -25,4 +25,4 @@ from solutions.gd import BinaryPerceptronGD
 
 ## GRADIENT DESCENT ##
 bp = BinaryPerceptronGD(n = 100, P = 30, seed=100)
-best = gd(bp, lr=0.1, max_epochs=10000, batch_size=10)
+best = gd_batch(bp, lr=2, max_epochs=1000, batch_size=1)
