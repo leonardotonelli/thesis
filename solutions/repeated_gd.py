@@ -2,7 +2,7 @@ import numpy as np
 from copy import deepcopy
 
 class BinaryPerceptronGD:
-    def __init__(self, n: int , P: int, seed: int):
+    def __init__(self, n: int , P: int, seed: int=None):
         '''
         Initializations
         '''
@@ -14,14 +14,16 @@ class BinaryPerceptronGD:
         self.weights = np.zeros(n)
         self.weights_continuous = np.zeros(n)
 
-    def init_config(self):
+
+    def init_config(self, seed):
         '''
         Initial configuration of the objective matrix
         '''
+        np.random.seed(seed)
+        self.targets = np.random.choice([-1,1], size=self.P)
         self.X = np.random.choice([-1,1], size = (self.P, self.n))
         self.weights = np.random.choice([-1,1], size=self.n)
-        self.weights_continuous = self.weights.copy()
-        self.pred = self.forward()
+
 
     def compute_cost(self):
         '''
@@ -31,6 +33,7 @@ class BinaryPerceptronGD:
         wrong_bool = (self.pred * self.targets) < 0
         cost = wrong_bool.sum()
         return cost
+
 
     def calculate_grad(self, index):
         '''
@@ -45,6 +48,7 @@ class BinaryPerceptronGD:
             grad[i] = (new_loss - current_loss)/(-2*weight)
 
         self.grad = grad
+
 
     def calculate_batch_grad(self, final, batch_size):
         '''
@@ -61,29 +65,21 @@ class BinaryPerceptronGD:
                 current_loss = int((pred * self.targets[index]) < 0)
                 new_loss = int((new_pred * self.targets[index]) < 0)
                 batch_grads[index-final+batch_size,i] = (new_loss - current_loss)/(- 2*weight)
-                # print(f"Batch Gradients: ")
-                # print(batch_grads)
 
         self.grad = np.mean(batch_grads, axis=0)
-        # print("Grad:")
-        # print(self.grad)
+
 
     def step(self, lr):
         '''
         make a continuous step towards the gradient direction
         '''
-        # print(f"Step...") 
-        # print(f"continuous before= {self.weights_continuous}")
         self.weights_continuous = self.weights_continuous - lr * self.grad
-        # print(f"continuous after= {self.weights_continuous}")
+
 
     def discretize(self):
-        # print(f"Discretize...")
-        # print(f"current weights: {self.weights}")
-        # print(f"current continuous weights: {self.weights_continuous}")
         self.weights = np.sign(self.weights_continuous)
         self.weights[self.weights == 0] = 1
-        # print(f"new weights: {self.weights}")
+
 
     def copy(self):
         '''
@@ -91,17 +87,20 @@ class BinaryPerceptronGD:
         '''
         return deepcopy(self)
 
+
     def display(self):
         '''
         Display the current state
         '''
     
+
     def forward(self):
         '''
         Function that outputs the prediction in the current state
         '''
         intermediate = self.X @ self.weights
         return intermediate
+
 
     def shuffle(self):
         # Shuffle indices
@@ -110,6 +109,7 @@ class BinaryPerceptronGD:
         # Apply permutation to both X and targets
         self.X = self.X[indices]
         self.targets = self.targets[indices]
+
 
 
 class RepeatedGD:
@@ -123,16 +123,16 @@ class RepeatedGD:
         self.replicas_weights = np.zeros(shape=(n, num_replicas))
         self.replicas_targets = np.zeros(shape=(P, num_replicas))
         self.grads = np.zeros(shape=(n, num_replicas))
-        self.epoch_records = np.full(self.num_replicas, -1)
 
-    def init_config(self, batch_size):
+
+    def init_config(self):
         '''
         initialize all the replicas to same initial condition
         '''
         n = self.n
         P = self.P
         seed = self.seed
-        self.batches_final_indeces = np.zeros(self.num_replicas)
+        self.batches_final_indeces = np.zeros(self.num_replicas, dtype=int)
 
         num_replicas = self.num_replicas
         self.X = np.random.normal(loc = 0, scale = 1, size = (P, n))
@@ -140,7 +140,7 @@ class RepeatedGD:
 
         for i, replica in enumerate(self.replicas):
             replica.init_config(seed)
-            self.costs[i] = replica.compute_cost(0, 0) # set gamma and distance at zero because they are all at the same spot
+            self.costs[i] = replica.compute_cost() # set gamma and distance at zero because they are all at the same spot
             self.replicas_weights[:,i] = replica.weights
             self.replicas_targets[:,i] = replica.targets
 
@@ -149,6 +149,7 @@ class RepeatedGD:
             assert np.all(self.replicas_targets[:,i] == self.replicas_targets[:,0])
             assert np.all(replica.X == self.replicas[0].X)
 
+
     def compute_reference(self):
         '''
         compute the reference replica (only average)
@@ -156,41 +157,58 @@ class RepeatedGD:
         mean = np.sum(self.replicas_weights, axis=1)
         self.reference = mean
 
+
     def random_replica(self):
-        ''' Method that returns a random replica index to propose actions'''
+        ''' 
+        Method that returns a random replica index to propose actions
+        '''
         return np.random.randint(self.num_replicas)
 
-    def calculate_grad(self, replica_index, batch_size, epoch):
-        ''' Method that calculate the gradient needed for the update'''
+
+    def calculate_grad(self, replica_index, batch_size):
+        ''' 
+        Method that calculate the gradient needed for the update
+        '''
         final_index = self.batches_final_indeces[replica_index]
-        if self.epoch_records[replica_index] >= self.P:
+        if final_index >= self.P:
             return None
         else:
             self.replicas[replica_index].calculate_batch_grad(final_index, batch_size)
             self.batches_final_indeces[replica_index] += batch_size
 
+
     def step(self, replica_index, gamma, beta, lr):
-        ''' Method that modifies the specific replica weights according to the update rule'''
+        ''' 
+        Method that modifies the specific replica weights according to the update rule
+        '''
         self.replicas[replica_index].step(lr)
         self.compute_reference()
-        self.replicas[replica_index].weights += gamma/(beta*lr) * (np.tanh(gamma*self.reference) - self.replicas[replica_index].weights)
+        self.replicas[replica_index].weights_continuous += gamma/(beta*lr) * (np.tanh(gamma*self.reference) - self.replicas[replica_index].weights)
 
-    def discretize(self):
-        ''' Method that discretize the weights after the step'''
 
     def epoch_passed(self):
-        ''' Method that check whether a full epoch as passed, if yes it reinitializes the record'''
+        ''' 
+        Method that check whether a full epoch as passed, if yes it reinitializes the record
+        '''
         return np.all(self.batches_final_indeces >= self.P)
         
+
     def reset_batch_counter(self):
         ''' It resents the final indeces of each replica, to start from zeros for each replica'''
-        self.batches_final_indeces = np.zeros(self.num_replicas)
+        self.batches_final_indeces = np.zeros(self.num_replicas, dtype=int)
 
-    def best_cost(self):
-        ''' method to get the best cost across all the replicas results'''
 
-    def get_best_replica(self):
-        ''' method to get the best performing replica and return it'''
+    def get_best(self):
+        ''' 
+        method to get the best performing replica and return it
+        '''
+        best = np.inf
+        for replica in self.replicas:
+            c = replica.compute_cost()
+            if c <= best:
+                best = c
+                best_replica = replica
+        return best, best_replica
 
     def shuffle(self):
         for replica in self.replicas:
@@ -198,15 +216,13 @@ class RepeatedGD:
 
 
 
-def replicated_gd(probl, lr: float, max_epochs: int, batch_size: int, scooping_steps: int, gamma0, gamma1, beta):
+def replicated_gd(probl, lr: float, max_epochs: int, batch_size: int, gamma0, gamma1, beta):
 
-    probl.init_config(batch_size)
+    probl.init_config()
     stop = False
     epoch = 0
-    gammas = np.zeros(scooping_steps)
-    gammas[:-1] = np.linspace(gamma0, gamma1, scooping_steps-1)
+    gammas = np.linspace(gamma0, gamma1, max_epochs)
     gamma = gammas[epoch]
-
 
     while stop is not True:
         
@@ -217,31 +233,29 @@ def replicated_gd(probl, lr: float, max_epochs: int, batch_size: int, scooping_s
         replica_index = probl.random_replica()
 
         # calculate the gradients based on the discrete internal weights
-        probl.calculate_grad(replica_index, batch_size, epoch)
+        probl.calculate_grad(replica_index, batch_size)
 
         # make updates to the weights of the replica
         probl.step(replica_index, gamma, beta, lr)
 
         # discretize the new weights
-        probl.discretize(replica_index)
+        probl.replicas[replica_index].discretize()
 
-        # check whether an epoch as passed
-        if probl.epoch_passed():
+        best_cost, best_replica = probl.get_best()
+            
+        # stopping criterion, either solved the problem or max amount of epochs reached
+        if best_cost == 0:
+            print("Problem solved.")
+            stop = True
+        elif epoch>=max_epochs:
+            print(f"Maximum amount of epochs reached. Best cost reached= {best_cost}")
+            stop = True
+        # check whether an epoch has passed
+        elif probl.epoch_passed():
+            print(f"Epoch {epoch+1}/{max_epochs} Completed! best loss= {best_cost}")
             epoch += 1
             gamma = gammas[epoch]
             probl.shuffle()
             probl.reset_batch_counter()
-
-        
-        # stopping criterion, either solved the problem or max amount of epochs reached
-        if probl.is_solved(replica_index):
-            print("Problem solved.")
-            stop = True
-        elif epoch>max_epochs:
-            print(f"Maximum amount of epochs reached. Best cost reached= {probl.best_cost()}")
-            stop = True
-
-    # get the best replica to return 
-    best_replica = probl.get_best_replica()
 
     return best_replica

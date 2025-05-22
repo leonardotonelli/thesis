@@ -1,8 +1,11 @@
 from solutions.gd import gd
 from solutions.gd import gd_batch
 from solutions.gd import BinaryPerceptronGD
-# from problems.repeatedv2 import BinaryPerceptronRepeated
-# from solutions.repeated_simann  import RepeatedSimann, repeated_simann
+from solutions.repeated_gd import replicated_gd
+from solutions.repeated_gd import RepeatedGD
+from solutions.repeated_gd import BinaryPerceptronGD
+from problems.perceptron_repeated import BinaryPerceptronRepeated
+from solutions.repeated_simann  import RepeatedSimann, repeated_simann
 
 ## SIMULATED ANNEALING ##
 # n = 3
@@ -23,6 +26,13 @@ from solutions.gd import BinaryPerceptronGD
 # print(f"Final best cost = {best_cost}")
 
 
-## GRADIENT DESCENT ##
-bp = BinaryPerceptronGD(n = 100, P = 30, seed=100)
-best = gd_batch(bp, lr=2, max_epochs=1000, batch_size=1)
+# ## GRADIENT DESCENT ##
+# bp = BinaryPerceptronGD(n = 100, P = 30, seed=100)
+# best = gd_batch(bp, lr=2, max_epochs=1000, batch_size=1)
+
+## REPLICATED GRADIENT DESCENT ##
+gamma0 = .6
+gamma1 = 1.5
+beta = 0.5
+rep = RepeatedGD(n = 100, P = 20, num_replicas = 3, seed=1)
+best = replicated_gd(rep, lr=2, max_epochs=1000, batch_size=10, gamma0=gamma0, gamma1=gamma1, beta=beta)
