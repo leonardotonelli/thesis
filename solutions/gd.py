@@ -162,7 +162,7 @@ def gd_batch(probl, lr: float, max_epochs: int, batch_size: int):
         probl.shuffle() 
         probl.pred = probl.forward()
 
-        for i in range(batch_size, probl.X.shape[0]+1, batch_size):
+        for i in range(batch_size, probl.P+1, batch_size):
             # print(f"i={i}")
             
             # calculate the gradients based on the discrete internal weights

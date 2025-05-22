@@ -10,7 +10,7 @@ from solutions.gd import BinaryPerceptronGD
 # bp = BinaryPerceptronRepeated(n, P, seed=10)
 # rep = RepeatedSimann(n = 401, P = 129, num_replicas = 3)
 # annealing_steps = 1000
-# mcmc_steps = 200
+# mcmc_steps = 200  
 # scooping_steps = 1000
 # beta0 = .1
 # beta1 = 5
