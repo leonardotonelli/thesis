@@ -44,9 +44,9 @@ class BinaryPerceptronGD:
         for i, weight in enumerate(self.weights):
             pred = self.pred[index] + 0.001
             new_pred = pred - 2*self.X[index, i]*weight + 0.001
-            current_loss = int((pred * self.targets[index]) < 0)
-            new_loss = int((new_pred * self.targets[index]) < 0)
-            grad[i] = (new_loss - current_loss)/(-2*weight)
+            current_loss = int( (pred >= 0)*1 == self.targets[index] )
+            new_loss = int( (new_pred >= 0)*1 == self.targets[index] )
+            grad[i] = (new_loss - current_loss)/(-2*weight) #TODO TO CHANGE
 
         self.grad = grad
 
@@ -63,9 +63,11 @@ class BinaryPerceptronGD:
             for i, weight in enumerate(self.weights):
                 pred = self.pred[index]
                 new_pred = pred - 2*self.X[index, i]*weight
-                current_loss = int((pred * self.targets[index]) < 0)
-                new_loss = int((new_pred * self.targets[index]) < 0)
-                batch_grads[index-final+batch_size,i] = (new_loss - current_loss)/(- 2*weight)
+                current_loss = int( (pred >= 0)*1 == self.targets[index] )
+                new_loss = int( (new_pred >= 0)*1 == self.targets[index] )
+                # current_loss = int((pred * self.targets[index]) < 0)
+                # new_loss = int((new_pred * self.targets[index]) < 0)
+                batch_grads[index-final+batch_size,i] = (new_loss - current_loss)/(- 2*weight) #TODO TO CHANGE
 
         self.grad = np.mean(batch_grads, axis=0)
 
@@ -114,8 +116,7 @@ class BinaryPerceptronGD:
 
 
 class RepeatedGD:
-    def __init__(self, n: int = 10, P: int = 10, num_replicas: int = 10, reference_type: str = "average", seed: int = 1):
-        self.reference_type = reference_type
+    def __init__(self, n: int = 10, P: int = 10, num_replicas: int = 10, seed: int = 1):
         self.n = n
         self.P = P
         self.num_replicas = num_replicas
@@ -225,6 +226,8 @@ def replicated_gd(probl, lr: float, max_epochs: int, batch_size: int, gamma0, ga
     epoch = 0
     gammas = np.linspace(gamma0, gamma1, max_epochs)
     gamma = gammas[epoch]
+    best_cost = np.inf
+    best_replica = None
 
     while stop is not True:
         
@@ -243,8 +246,12 @@ def replicated_gd(probl, lr: float, max_epochs: int, batch_size: int, gamma0, ga
         # discretize the new weights
         probl.replicas[replica_index].discretize()
 
-        best_cost, best_replica = probl.get_best()
-            
+        b_cost, b_replica = probl.get_best()
+
+        if b_cost < best_cost:
+            best_cost = b_cost
+            best_replica = b_replica
+
         # stopping criterion, either solved the problem or max amount of epochs reached
         if best_cost == 0:
             print("Problem solved.")

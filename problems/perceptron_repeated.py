@@ -29,8 +29,7 @@ class BinaryPerceptronRepeated:
         Define the cost function and computation
         '''
         self.pred = self.forward()
-        wrong_bool = (self.pred * self.targets) < 0
-        cost = int(wrong_bool.sum())
+        cost = np.sum( (self.pred >= 0) == (self.targets == 1) )
         self.cost = cost
         new_c = cost + gamma*distance
         return new_c
@@ -48,8 +47,7 @@ class BinaryPerceptronRepeated:
         delta_pred = -2 * self.X[:, action] * self.weights[action]
         # derive new pred from the delta
         new_pred = current_pred + delta_pred.flatten()
-        new_errors = (new_pred * self.targets) < 0
-        new_cost = int(np.sum(new_errors))
+        new_cost = np.sum( (new_pred >= 0) == (self.targets == 1) )
         
         # compute delta
         delta = new_cost - current_cost
@@ -87,8 +85,9 @@ class BinaryPerceptronRepeated:
         self.weights[action] = - self.weights[action]
 
         # update cost
-        new_errors = (self.pred * self.targets) < 0
-        self.cost = np.sum(new_errors)
+        # new_errors = (self.pred * self.targets) < 0
+        # self.cost = np.sum(new_errors)
+        self.cost = np.sum( (self.pred >= 0) == (self.targets == 1) )
 
 
     def propose_action(self):

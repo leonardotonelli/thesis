@@ -11,7 +11,6 @@ class BinaryPerceptron:
         self.P = P
         self.alpha = P/n
         self.seed = seed
-        self.targets = np.random.choice([-1,1], size=P)
         self.weights = np.zeros(n)
 
 
@@ -19,7 +18,8 @@ class BinaryPerceptron:
         '''
         Initial configuration of the objective matrix
         '''
-        self.X = np.random.normal(loc = 0, scale = 1, size = (self.P, self.n))
+        self.targets = np.random.choice([-1,1], size=self.P)
+        self.X = np.random.choice([-1,1], size = (self.P, self.n))
         self.weights = np.random.choice([-1,1], size=self.n)
 
 
@@ -28,8 +28,7 @@ class BinaryPerceptron:
         Define the cost function and computation
         '''
         self.pred = self.forward()
-        wrong_bool = (self.pred * self.targets) < 0
-        cost = wrong_bool.sum()
+        cost = np.sum( (self.pred >= 0) == (self.targets == 1) )
         return cost
 
   
@@ -47,8 +46,7 @@ class BinaryPerceptron:
         current_errors = (current_pred * self.targets) < 0
         current_cost = np.sum(current_errors)
         # new cost
-        new_errors = (new_pred * self.targets) < 0
-        new_cost = np.sum(new_errors)
+        new_cost = np.sum( (new_pred >= 0) == (self.targets == 1) )
         # compute delta
         delta = new_cost - current_cost
         
