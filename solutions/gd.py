@@ -59,8 +59,8 @@ class BinaryPerceptronGD:
         batch_grads = np.zeros((batch_size, self.n))
         for index in range(final - batch_size, final):
             for i, weight in enumerate(self.weights):
-                pred = self.pred[index]
-                new_pred = pred - 2*self.X[index, i]*weight
+                pred = self.pred[index]  + 0.001
+                new_pred = pred - 2*self.X[index, i]*weight + 0.001
                 current_loss = int((pred * self.targets[index]) < 0)
                 new_loss = int((new_pred * self.targets[index]) < 0)
                 batch_grads[index-final+batch_size,i] = (new_loss - current_loss)/(- 2*weight)

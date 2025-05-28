@@ -1,5 +1,6 @@
 import numpy as np
 from copy import deepcopy
+import time
 
 class BinaryPerceptronGD:
     def __init__(self, n: int , P: int, seed: int=None):
@@ -182,7 +183,8 @@ class RepeatedGD:
         Method that modifies the specific replica weights according to the update rule
         '''
         self.replicas[replica_index].step(lr)
-        self.compute_reference()
+        self.replicas[replica_index].discretize()
+        # self.compute_reference() #TODO??
         self.replicas[replica_index].weights_continuous += gamma/(beta*lr) * (np.tanh(gamma*self.reference) - self.replicas[replica_index].weights)
 
 

@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from problems.perceptron_repeated import BinaryPerceptronRepeated
+import time
+
 
 
 class RepeatedSimann:
@@ -13,6 +15,8 @@ class RepeatedSimann:
         self.costs = np.zeros(num_replicas)
         self.replicas_weights = np.zeros(shape=(n, num_replicas))
         self.replicas_targets = np.zeros(shape=(P, num_replicas))
+        self.iterations_to_solution = np.nan
+        self.time_to_solution = np.nan
 
     def init_config(self):
         '''
@@ -23,7 +27,6 @@ class RepeatedSimann:
         seed = self.seed
 
         num_replicas = self.num_replicas
-        self.X = np.random.normal(loc = 0, scale = 1, size = (P, n))
         self.replicas = [BinaryPerceptronRepeated(n,P) for _ in range(num_replicas)]
 
         for i, replica in enumerate(self.replicas):
@@ -103,7 +106,7 @@ class RepeatedSimann:
         return converged
 
     
-def repeated_simann(probl, beta0, beta1, gamma0, gamma1, annealing_steps = 10, scooping_steps = 10, mcmc_steps = 10, seed = None):
+def repeated_simann(probl, beta0, beta1, gamma0, gamma1, annealing_steps = 10, scooping_steps = 10, mcmc_steps = 10, seed = None, verbose=0):
     
     if seed != None:
         np.random.seed(seed)
@@ -113,7 +116,9 @@ def repeated_simann(probl, beta0, beta1, gamma0, gamma1, annealing_steps = 10, s
 
     # compute the best initial cost for every replica (the same)
     best_cost, best_replica = probl.compute_best_cost(0,0)
-    print(f"Initial cost: {best_cost}")
+
+    if verbose:
+        print(f"Initial cost: {best_cost}")
 
     # set all the betas to use for annealing
     betas = np.zeros(annealing_steps)
@@ -124,6 +129,8 @@ def repeated_simann(probl, beta0, beta1, gamma0, gamma1, annealing_steps = 10, s
     gammas = np.zeros(scooping_steps)
     gammas[:-1] = np.linspace(gamma0, gamma1, scooping_steps-1)
 
+    # initialize timer
+    start_time = time.time()
 
     for i in range(annealing_steps): # assume that annealing steps are the same for scooping for now
         accepted_moves = 0
@@ -148,20 +155,26 @@ def repeated_simann(probl, beta0, beta1, gamma0, gamma1, annealing_steps = 10, s
                 if cx < best_cost:
                     best_cost = cx
                     best_replica = probl.get_replica(replica_index).copy()
-                    if best_cost == 0:
-                        print(f"Solved. After {i} annealing steps.")
-                        return (best_replica, best_cost)
+            if best_cost == 0:
+                if verbose:
+                    print(f"Solved. After {i} annealing steps.")
+                
+                best_replica.iterations_to_solution = i
+                end_time = time.time()
+                best_replica.time_to_solution = end_time - start_time
+                return (best_replica, best_cost)
 
-
-        best_replica.display() # TODO
-        print(f"beta = {betas[i]}, gamma = {gammas[i]}, c={cx}, best_c={best_cost}, accepted_freq={accepted_moves/mcmc_steps*probl.num_replicas}")
+        if verbose:
+            best_replica.display() # TODO
+            print(f"beta = {betas[i]}, gamma = {gammas[i]}, c={cx}, best_c={best_cost}, accepted_freq={accepted_moves/mcmc_steps*probl.num_replicas}")
         
     # function to define whether the replica converged or not
-    converged = probl.get_convergence_status()
-    if converged:
-        print("The replica converged to the same final assignment")
-    else:
-        print("The replicas did not converge")
+    if verbose:
+        converged = probl.get_convergence_status()
+        if converged:
+            print("The replica converged to the same final assignment")
+        else:
+            print("The replicas did not converge")
 
         # stopping criterion -> maximum number of iteration reached
     return (best_replica, best_cost)
