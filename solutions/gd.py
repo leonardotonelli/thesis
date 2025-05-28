@@ -40,10 +40,10 @@ class BinaryPerceptronGD:
         '''
         grad = np.zeros(self.n)
         for i, weight in enumerate(self.weights):
-            pred = self.pred[index] + 0.001
-            new_pred = pred - 2*self.X[index, i]*weight + 0.001
-            current_loss = int((pred * self.targets[index]) < 0)
-            new_loss = int((new_pred * self.targets[index]) < 0)
+            pred = self.pred[index] 
+            new_pred = pred - 2*self.X[index, i]*weight 
+            current_loss = abs(pred - self.targets[index])
+            new_loss = abs(new_pred - self.targets[index])
             grad[i] = (new_loss - current_loss)/(-2*weight) #TODO TO CHANGE
 
         self.grad = grad
@@ -52,40 +52,40 @@ class BinaryPerceptronGD:
         '''
         compute gradient from loss computed for just the batch. It returns an array of gradients for each weight
         '''
-        print(f"X = {self.X}")
-        print(f"weights = {self.weights}")
-        print(f"targets = {self.targets}")
+        # print(f"X = {self.X}")
+        # print(f"weights = {self.weights}")
+        # print(f"targets = {self.targets}")
         batch_grads = np.zeros((batch_size, self.n))
         for index in range(final - batch_size, final):
             for i, weight in enumerate(self.weights):
                 pred = self.pred[index]
                 new_pred = pred - 2*self.X[index, i]*weight
-                current_loss = int( (pred >= 0)*1 == self.targets[index] )
-                new_loss = int( (new_pred >= 0)*1 == self.targets[index] )
+                current_loss = 0 if (pred>=0)*1 ==  self.targets[index] else abs(pred)
+                new_loss = 0 if (new_pred>=0)*1 ==  self.targets[index] else abs(new_pred)
                 batch_grads[index-final+batch_size,i] = (new_loss - current_loss)/(- 2*weight) # TODO DA CAMBIARE TENENDO CONTO CAMBIO PREDIZIONI
-                print(f"Batch Gradients: ")
-                print(batch_grads)
+                # print(f"Batch Gradients: ")
+                # print(batch_grads)
 
         self.grad = np.mean(batch_grads, axis=0)
-        print("Grad:")
-        print(self.grad)
+        # print("Grad:")
+        # print(self.grad)
 
     def step(self, lr):
         '''
         make a continuous step towards the gradient direction
         '''
-        print(f"Step...") 
-        print(f"continuous before= {self.weights_continuous}")
+        # print(f"Step...") 
+        # print(f"continuous before= {self.weights_continuous}")
         self.weights_continuous = self.weights_continuous - lr * self.grad
-        print(f"continuous after= {self.weights_continuous}")
+        # print(f"continuous after= {self.weights_continuous}")
 
     def discretize(self):
-        print(f"Discretize...")
-        print(f"current weights: {self.weights}")
-        print(f"current continuous weights: {self.weights_continuous}")
+        # print(f"Discretize...")
+        # print(f"current weights: {self.weights}")
+        # print(f"current continuous weights: {self.weights_continuous}")
         self.weights = np.sign(self.weights_continuous)
         self.weights[self.weights == 0] = 1
-        print(f"new weights: {self.weights}")
+        # print(f"new weights: {self.weights}")
 
     def copy(self):
         '''

@@ -42,10 +42,10 @@ class BinaryPerceptronGD:
         '''
         grad = np.zeros(self.n)
         for i, weight in enumerate(self.weights):
-            pred = self.pred[index] + 0.001
-            new_pred = pred - 2*self.X[index, i]*weight + 0.001
-            current_loss = int( (pred >= 0)*1 == self.targets[index] )
-            new_loss = int( (new_pred >= 0)*1 == self.targets[index] )
+            pred = self.pred[index] 
+            new_pred = pred - 2*self.X[index, i]*weight 
+            current_loss = 0 if (pred>=0)*1 ==  self.targets[index] else abs(pred)
+            new_loss = 0 if (new_pred>=0)*1 ==  self.targets[index] else abs(new_pred)
             grad[i] = (new_loss - current_loss)/(-2*weight) #TODO TO CHANGE
 
         self.grad = grad
@@ -63,8 +63,8 @@ class BinaryPerceptronGD:
             for i, weight in enumerate(self.weights):
                 pred = self.pred[index]
                 new_pred = pred - 2*self.X[index, i]*weight
-                current_loss = int( (pred >= 0)*1 == self.targets[index] )
-                new_loss = int( (new_pred >= 0)*1 == self.targets[index] )
+                current_loss = 0 if (pred>=0)*1 ==  self.targets[index] else abs(pred)
+                new_loss = 0 if (new_pred>=0)*1 ==  self.targets[index] else abs(new_pred)
                 # current_loss = int((pred * self.targets[index]) < 0)
                 # new_loss = int((new_pred * self.targets[index]) < 0)
                 batch_grads[index-final+batch_size,i] = (new_loss - current_loss)/(- 2*weight) #TODO TO CHANGE

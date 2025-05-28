@@ -3,7 +3,7 @@ from solutions.gd import gd_batch
 from solutions.gd import BinaryPerceptronGD
 from solutions.repeated_gd import replicated_gd
 from solutions.repeated_gd import RepeatedGD
-# from solutions.repeated_gd import BinaryPerceptronGD
+from solutions.repeated_gd import BinaryPerceptronGD
 from problems.perceptron_repeated import BinaryPerceptronRepeated
 from solutions.repeated_simann  import RepeatedSimann, repeated_simann
 
@@ -27,12 +27,12 @@ from solutions.repeated_simann  import RepeatedSimann, repeated_simann
 
 
 ## GRADIENT DESCENT ##
-bp = BinaryPerceptronGD(n = 5, P = 3, seed=5)
-best = gd_batch(bp, lr=0.001, max_epochs=3, batch_size=1)
+# bp = BinaryPerceptronGD(n = 100, P = 20, seed=5)
+# best = gd_batch(bp, lr=0.01, max_epochs=1000, batch_size=30)
 
 # ## REPLICATED GRADIENT DESCENT ##
-# gamma0 = .6
-# gamma1 = 1.5
-# beta = 0.5
-# rep = RepeatedGD(n = 100, P = 20, num_replicas = 3, seed=12)
-# best = replicated_gd(rep, lr=2, max_epochs=1000, batch_size=10, gamma0=gamma0, gamma1=gamma1, beta=beta)
+gamma0 = .1
+gamma1 = 1
+beta = 0.5
+rep = RepeatedGD(n = 100, P = 30, num_replicas = 3, seed=22)
+best = replicated_gd(rep, lr=0.1, max_epochs=10000, batch_size=10, gamma0=gamma0, gamma1=gamma1, beta=beta)
