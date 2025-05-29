@@ -31,7 +31,7 @@ class BinaryPerceptronGD:
         Define the cost function and computation
         '''
         self.pred = self.forward()
-        cost = np.sum( (self.pred >= 0) == (self.targets == 1) )
+        cost = np.sum( (self.pred >= 0) == (self.targets == -1) )
         return cost
 
     def calculate_grad(self, index):
