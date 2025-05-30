@@ -3,6 +3,7 @@ from solutions.simann import simann
 import numpy as np
 import pandas as pd
 
+## SIMULATED ANNEALING ##
 def collect_size_comparison(size_limit, alpha, num_replicas, sample_size=10, path="data/comparison_size_data.csv"):
 
     sizes = list(range(10, size_limit, 20))
@@ -172,6 +173,8 @@ def collect_replicas_comparison(replicas_limit, size, alpha, sample_size=10, pat
     df.to_csv(path, index=False)
     print(f"\n CSV saved to: {path}")
 
+
+# GRADIENT DESCENT #
 
 
 

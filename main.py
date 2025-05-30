@@ -24,9 +24,9 @@ from solutions.repeated_simann  import RepeatedSimann, repeated_simann
 
 
 # ## REPLICATED GRADIENT DESCENT ##
-gamma0 = .6
-gamma1 = 1.5
-beta = 0.5
-rep = RepeatedGD(n = 5, P = 4, num_replicas = 2, seed=22)
-best = replicated_gd(rep, lr=0.001, max_epochs=100, batch_size=1, 
+gamma0 = 0.01
+gamma1 = 1
+beta = 5
+rep = RepeatedGD(n = 100, P = 75, num_replicas = 3, seed=4)
+best = replicated_gd(rep, lr=0.01, max_epochs=1000, batch_size=10, 
                      gamma0=gamma0, gamma1=gamma1, beta=beta)

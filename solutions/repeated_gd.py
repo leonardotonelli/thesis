@@ -36,20 +36,39 @@ class BinaryPerceptronGD:
         return cost
         
 
-    def calculate_batch_grad(self, final, batch_size):
-        '''
-        compute gradient from loss computed for just the batch. It returns an array of gradients for each weight
-        '''
-        batch_grads = np.zeros((batch_size, self.n))
-        self.pred = self.forward()
-        for index in range(final - batch_size, final):
-            for i, weight in enumerate(self.weights):
-                pred = self.pred[index]
-                new_pred = pred - 2*self.X[index, i]*weight
-                current_loss = 0 if (pred>=0)*1 == self.targets[index] else abs(pred)
-                new_loss = 0 if (new_pred>=0)*1 == self.targets[index] else abs(new_pred)
-                batch_grads[index-final+batch_size,i] = (new_loss - current_loss)/(- 2*weight) 
+    # def calculate_batch_grad(self, final, batch_size):
+    #     '''
+    #     compute gradient from loss computed for just the batch. It returns an array of gradients for each weight
+    #     '''
+    #     batch_grads = np.zeros((batch_size, self.n))
+    #     self.pred = self.forward()
+    #     for index in range(final - batch_size, final):
+    #         for i, weight in enumerate(self.weights):
+    #             pred = self.pred[index]
+    #             new_pred = pred - 2*self.X[index, i]*weight
+    #             current_loss = 0 if (pred>=0)*1 == self.targets[index] else abs(pred)
+    #             new_loss = 0 if (new_pred>=0)*1 == self.targets[index] else abs(new_pred)
+    #             batch_grads[index-final+batch_size,i] = (new_loss - current_loss)/(- 2*weight) 
 
+    #     self.grad = np.mean(batch_grads, axis=0)
+
+    def calculate_batch_grad(self, final, batch_size):
+        batch_grads = np.zeros((batch_size, self.n))
+        batch_indices = range(final - batch_size, final)
+        
+        for idx, sample_idx in enumerate(batch_indices):
+            prediction = np.dot(self.X[sample_idx], self.weights)
+            target = self.targets[sample_idx]
+            
+            # Usa la stessa regola di decisione del tuo codice originale
+            predicted_label = 1 if prediction >= 0 else -1
+            
+            # Regola del perceptron: aggiorna solo se classificazione errata
+            if predicted_label != target:
+                batch_grads[idx] = -target * self.X[sample_idx]
+            else:
+                batch_grads[idx] = np.zeros(self.n)
+        
         self.grad = np.mean(batch_grads, axis=0)
 
 
@@ -128,7 +147,7 @@ class RepeatedGD:
         compute the reference replica 
         '''
         current_weights = np.array([replica.weights for replica in self.replicas])
-        self.reference = np.sum(current_weights, axis=0)
+        self.reference = np.mean(current_weights, axis=0)
 
 
     def random_replica(self):
@@ -157,7 +176,8 @@ class RepeatedGD:
         # self.replicas[replica_index].discretize()
         # # self.compute_reference() 
         # self.replicas[replica_index].weights_continuous += gamma/(beta*lr) * (np.tanh(gamma*self.reference) - self.replicas[replica_index].weights)
-        update = - lr*self.replicas[replica_index].grad + gamma/(beta*lr) * (np.tanh(gamma*self.reference) - self.replicas[replica_index].weights)
+        # update = - lr*self.replicas[replica_index].grad + gamma/(beta*lr) * (np.tanh(gamma*self.reference) - self.replicas[replica_index].weights)
+        update = - lr*self.replicas[replica_index].grad + gamma*lr * (self.reference - self.replicas[replica_index].weights)
         current_weights = self.replicas[replica_index].weights_continuous
         self.replicas[replica_index].weights_continuous = current_weights + update
 
@@ -231,10 +251,13 @@ def replicated_gd(probl, lr: float, max_epochs: int, batch_size: int, gamma0, ga
         if best_cost == 0:
             print("Problem solved.")
             stop = True
+            best_replica.cost = 0
+            best_replica.epochs = epoch
         elif epoch>=max_epochs:
-            print(f"Maximum amount of epochs reached. Best cost reached= {b_cost}")
+            print(f"Maximum amount of epochs reached. Best cost reached= {best_cost}")
             stop = True
-            continue
+            best_replica.error_rate = round(best_cost / best_replica.P, 2)
+            best_replica.epochs = epoch
         # check whether an epoch has passed
         elif probl.epoch_passed():
             print(f"Epoch {epoch+1}/{max_epochs} Completed! best loss= {b_cost}")
