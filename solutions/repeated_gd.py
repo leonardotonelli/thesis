@@ -1,6 +1,5 @@
 import numpy as np
 from copy import deepcopy
-import time
 
 class BinaryPerceptronGD:
     def __init__(self, n: int , P: int, seed: int=None):
@@ -251,7 +250,7 @@ def replicated_gd(probl, lr: float, max_epochs: int, batch_size: int, gamma0, ga
         if best_cost == 0:
             print("Problem solved.")
             stop = True
-            best_replica.cost = 0
+            best_replica.error_rate = 0
             best_replica.epochs = epoch
         elif epoch>=max_epochs:
             print(f"Maximum amount of epochs reached. Best cost reached= {best_cost}")

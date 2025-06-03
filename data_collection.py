@@ -1,196 +1,122 @@
-from solutions.repeated_simann import repeated_simann, RepeatedSimann
-from solutions.simann import simann
-import numpy as np
-import pandas as pd
+from comparison_gd import rgd_collect_size_comparison, rgd_collect_alpha_comparison, rgd_collect_replicas_comparison
+from comparison_sa import rsa_collect_size_comparison, rsa_collect_alpha_comparison, rsa_collect_replicas_comparison
+from parameters_sa import rsa_collect_beta_comparison, rsa_collect_gamma_comparison, rsa_collect_annealing_steps_comparison, rsa_collect_mcmc_steps_comparison
+from parameters_gd import collect_learning_rate_comparison, collect_gamma_interval_comparison, collect_batch_size_comparison
 
-## SIMULATED ANNEALING ##
-def collect_size_comparison(size_limit, alpha, num_replicas, sample_size=10, path="data/comparison_size_data.csv"):
+# DATA COLLECTION FOR REPLICATED SIMULATED ANNEALING #
+# Hyperparameters
+# size = 100
+# alpha = 0.2
+# num_replicas = 3
+# sample_size = 5
 
-    sizes = list(range(10, size_limit, 20))
-    print(sizes)
+# # Test 1: Variazione dell'intervallo beta per standard SA
+# beta_pairs = [(0.05, 2.5), (0.1, 5.0), (0.2, 7.5), (0.3, 10.0)]
+# rsa_collect_beta_comparison(
+#     beta_pairs, size, alpha, num_replicas, 
+#     sample_size=sample_size, 
+#     path="data/test/comparison_beta_data.csv"
+# )
 
-    dict = {"type": [], "size": [], "iterations": [], "time":[], "num_replicas": []}
+# # Test 2: Variazione dell'intervallo gamma per repeated SA
+# gamma_pairs = [(0.0, 0.0), (0.3, 0.8), (0.6, 1.5), (0.9, 2.0), (1.2, 2.5)]
+# rsa_collect_gamma_comparison(
+#     gamma_pairs, size, alpha, num_replicas,
+#     sample_size=sample_size,
+#     path="data/test/comparison_gamma_data.csv"
+# )
 
-    for size in sizes:
-        print(f"Collecting for size {size}...")
-        n = size
-        P = int(alpha * n)
-        annealing_steps = 1000 #max annealing steps
-        mcmc_steps = 200  
-        scooping_steps = 1000
-        beta0 = .1
-        beta1 = 5
+# # Test 3: Variazione degli annealing steps per standard SA
+# annealing_steps_list = [500, 750, 1000, 1250, 1500, 2000]
+# rsa_collect_annealing_steps_comparison(
+#     annealing_steps_list, size, alpha,
+#     sample_size=sample_size,
+#     path="data/test/comparison_annealing_steps_data.csv"
+# )
 
-        for i in range(sample_size):
+# # Test 4: Variazione degli mcmc steps per standard SA
+# mcmc_steps_list = [50, 100, 150, 200, 250, 300, 400]
+# rsa_collect_mcmc_steps_comparison(
+#     mcmc_steps_list, size, alpha,
+#     sample_size=sample_size,
+#     path="data/test/comparison_mcmc_steps_data.csv"
+# )
 
-            # INTERACTING #
-            rep_interacting = RepeatedSimann(n, P, num_replicas, seed=i)
-            best_bp_interacting, best_cost_interacting = repeated_simann(rep_interacting, beta0, beta1, gamma0=.6, gamma1=1.5, annealing_steps = annealing_steps, scooping_steps = scooping_steps, mcmc_steps = mcmc_steps)
-            dict["type"].append("interacting")
-            dict["size"].append(size)
-            if best_bp_interacting.iterations_to_solution == None:
-                print("There is a problem")
-            dict["iterations"].append(best_bp_interacting.iterations_to_solution)
-            dict["time"].append(best_bp_interacting.time_to_solution)
-            dict["num_replicas"].append(num_replicas)
-            print(f"{i+1}/{sample_size} interacting ok")
-            
-            # NON-INTERACTING #
-            rep_non_interacting = RepeatedSimann(n, P, num_replicas, seed=i)
-            best_bp_nointeracting, best_cost_nointeracting = repeated_simann(rep_non_interacting, beta0, beta1, gamma0=0, gamma1=0, annealing_steps = annealing_steps, scooping_steps = scooping_steps, mcmc_steps = mcmc_steps)
-            dict["type"].append("non_interacting")
-            dict["size"].append(size)
-            dict["iterations"].append(best_bp_nointeracting.iterations_to_solution)
-            dict["time"].append(best_bp_nointeracting.time_to_solution)
-            dict["num_replicas"].append(num_replicas)
-            print(f"{i+1}/{sample_size} non-interacting ok")
-            
-            # STANDARD #
-            rep = RepeatedSimann(n, P, num_replicas=1, seed=i)
-            best_bp_standard, best_cost_standard = repeated_simann(rep, beta0, beta1, gamma0=0, gamma1=0, annealing_steps = annealing_steps, scooping_steps = scooping_steps, mcmc_steps = mcmc_steps)
-            dict["type"].append("standard")
-            dict["size"].append(size)
-            dict["iterations"].append(best_bp_standard.iterations_to_solution)
-            dict["time"].append(best_bp_standard.time_to_solution)
-            dict["num_replicas"].append(1)
-            print(f"{i+1}/{sample_size} standard ok")
+# # size
+# size_limit = 200
+# alpha = 0.2
+# num_replicas = 3
+# rsa_collect_size_comparison(size_limit, alpha, num_replicas, sample_size=5, path="data/comparison_size_data.csv")
 
-            assert np.all(rep_interacting.replicas[0].X == rep_non_interacting.replicas[0].X) and \
-                np.all(rep_non_interacting.replicas[0].X == rep.replicas[0].X)
+# # alpha
+# alpha_limit = 0.4
+# size = 800
+# num_replicas = 3
+# rsa_collect_alpha_comparison(alpha_limit, size, num_replicas, sample_size=5, path="data/comparison_alpha_data.csv")
 
-            assert np.all(rep_interacting.replicas[0].targets == rep_non_interacting.replicas[0].targets) and \
-                np.all(rep_non_interacting.replicas[0].targets == rep.replicas[0].targets)
- 
-
-        
-        print(f"Collection for size {size} is completed.")
-
-    df = pd.DataFrame(dict)
-    df.to_csv(path, index=False)
-    print(f"\n CSV saved to: {path}")
-
-
-def collect_alpha_comparison(alpha_limit, size, num_replicas, sample_size=10, path="data/comparison_alpha_data.csv"):
-    alphas = list(range(0, alpha_limit, 0.1))
-    dict = {"type": [], "alpha": [], "iterations": [], "time":[]}
-
-    for alpha in alphas:
-        n = size
-        P = int(alpha * n)
-        rep = RepeatedSimann(n, P, num_replicas)
-        annealing_steps = 1000 #max annealing steps
-        mcmc_steps = 200  
-        scooping_steps = 1000
-        beta0 = .1
-        beta1 = 5
-
-        for i in range(sample_size):
-            # INTERACTING #
-            rep_interacting = RepeatedSimann(n, P, num_replicas, seed=i)
-            best_bp_interacting, best_cost_interacting = repeated_simann(rep_interacting, beta0, beta1, gamma0=.6, gamma1=1.5, annealing_steps = annealing_steps, scooping_steps = scooping_steps, mcmc_steps = mcmc_steps)
-            dict["type"].append("interacting")
-            dict["alpha"].append(alpha)
-            dict["iterations"].append(best_bp_interacting.iterations_to_solution)
-            dict["time"].append(best_bp_interacting.time_to_solution)
-            
-            # NON-INTERACTING #
-            rep_non_interacting = RepeatedSimann(n, P, num_replicas, seed=i)
-            best_bp_nointeracting, best_cost_nointeracting = repeated_simann(rep_non_interacting, beta0, beta1, gamma0=0, gamma1=0, annealing_steps = annealing_steps, scooping_steps = scooping_steps, mcmc_steps = mcmc_steps)
-            dict["type"].append("non_interacting")
-            dict["alpha"].append(alpha)
-            dict["iterations"].append(best_bp_nointeracting.iterations_to_solution)
-            dict["time"].append(best_bp_nointeracting.time_to_solution)
-            
-            # STANDARD #
-            rep = RepeatedSimann(n, P, num_replicas=1, seed=i)
-            best_bp_standard, best_cost_standard = repeated_simann(rep, beta0, beta1, gamma0=0, gamma1=0, annealing_steps = annealing_steps, scooping_steps = scooping_steps, mcmc_steps = mcmc_steps)
-            dict["type"].append("standard")
-            dict["alpha"].append(alpha)
-            dict["iterations"].append(best_bp_standard.iterations_to_solution)
-            dict["time"].append(best_bp_standard.time_to_solution)
-
-            assert np.all(rep_interacting.replicas[0].X == rep_non_interacting.replicas[0].X) and \
-                np.all(rep_non_interacting.replicas[0].X == rep.replicas[0].X)
-
-            assert np.all(rep_interacting.replicas[0].targets == rep_non_interacting.replicas[0].targets) and \
-                np.all(rep_non_interacting.replicas[0].targets == rep.replicas[0].targets)
-        
-        print(f"Collection for alpha={alpha} is completed.")
-
-    df = pd.DataFrame(dict)
-    df.to_csv(path, index=False)
-    print(f"\n CSV saved to: {path}")
-
-
-def collect_replicas_comparison(replicas_limit, size, alpha, sample_size=10, path="data/comparison_replicas_data.csv"):
-    replicas = list(range(replicas_limit))
-    dict = {"type": [], "alpha": [], "iterations": [], "time":[]}
-
-    for replica_num in replicas:
-        n = size
-        P = int(alpha * n)
-        rep = RepeatedSimann(n, P, replica_num)
-        annealing_steps = 1000 #max annealing steps
-        mcmc_steps = 200  
-        scooping_steps = 1000
-        beta0 = .1
-        beta1 = 5
-
-        for i in range(sample_size):
-            # INTERACTING #
-            rep_interacting = RepeatedSimann(n, P, replica_num, seed=i)
-            best_bp_interacting, best_cost_interacting = repeated_simann(rep_interacting, beta0, beta1, gamma0=.6, gamma1=1.5, annealing_steps = annealing_steps, scooping_steps = scooping_steps, mcmc_steps = mcmc_steps)
-            dict["type"].append("interacting")
-            dict["alpha"].append(alpha)
-            dict["iterations"].append(best_bp_interacting.iterations_to_solution)
-            dict["time"].append(best_bp_interacting.time_to_solution)
-            
-            # NON-INTERACTING #
-            rep_non_interacting = RepeatedSimann(n, P, replica_num, seed=i)
-            best_bp_nointeracting, best_cost_nointeracting = repeated_simann(rep_non_interacting, beta0, beta1, gamma0=0, gamma1=0, annealing_steps = annealing_steps, scooping_steps = scooping_steps, mcmc_steps = mcmc_steps)
-            dict["type"].append("non_interacting")
-            dict["alpha"].append(alpha)
-            dict["iterations"].append(best_bp_nointeracting.iterations_to_solution)
-            dict["time"].append(best_bp_nointeracting.time_to_solution)
-            
-            # STANDARD #
-            rep = RepeatedSimann(n, P, num_replicas=1, seed=i)
-            best_bp_standard, best_cost_standard = repeated_simann(rep, beta0, beta1, gamma0=0, gamma1=0, annealing_steps = annealing_steps, scooping_steps = scooping_steps, mcmc_steps = mcmc_steps)
-            dict["type"].append("standard")
-            dict["alpha"].append(alpha)
-            dict["iterations"].append(best_bp_standard.iterations_to_solution)
-            dict["time"].append(best_bp_standard.time_to_solution)
-
-            assert np.all(rep_interacting.replicas[0].X == rep_non_interacting.replicas[0].X) and \
-                np.all(rep_non_interacting.replicas[0].X == rep.replicas[0].X)
-
-            assert np.all(rep_interacting.replicas[0].targets == rep_non_interacting.replicas[0].targets) and \
-                np.all(rep_non_interacting.replicas[0].targets == rep.replicas[0].targets)
-        
-        print(f"Collection for replicas={replica_num} is completed.")
-
-    df = pd.DataFrame(dict)
-    df.to_csv(path, index=False)
-    print(f"\n CSV saved to: {path}")
-
-
-# GRADIENT DESCENT #
+# # replica
+# replicas_limit = 10
+# size = 800
+# alpha = 0.2
+# rsa_collect_replicas_comparison(alpha_limit, size, num_replicas, sample_size=5, path="data/comparison_replicas_data.csv")
 
 
 
-if __name__ == "__main__":
+# DATA COLLECTION FOR REPLICATED GRADIENT DESCENT #
 
-    size_limit = 200
-    alpha = 0.2
-    num_replicas = 3
-    collect_size_comparison(size_limit, alpha, num_replicas, sample_size=5, path="data/comparison_size_data.csv")
+# # Hyperparameters
+# # Test delle funzioni
 
-    # alpha_limit = 0.4
-    # size = 800
-    # num_replicas = 3
-    # collect_alpha_comparison(alpha_limit, size, num_replicas, sample_size=5, path="data/comparison_alpha_data.csv")
+# # 1. Learning Rate Comparison (Standard GD)
+# print("=== LEARNING RATE COMPARISON ===")
+# lr_values = [0.001, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2]
+# size = 500
+# alpha = 0.2
+# collect_learning_rate_comparison(lr_values, size, alpha, sample_size=5, batch_size=10, 
+#                                 path="data/test/comparison_lr_data.csv")
 
-    # replicas_limit = 10
-    # size = 800
-    # alpha = 0.2
-    # collect_replicas_comparison(alpha_limit, size, num_replicas, sample_size=5, path="data/comparison_replicas_data.csv")
+# # 2. Gamma Interval Comparison (Repeated GD)
+# print("\n=== GAMMA INTERVAL COMPARISON ===")
+# gamma_configs = [
+#     (0.0, 0.5),   # intervallo 0.5
+#     (0.0, 1.0),   # intervallo 1.0
+#     (0.01, 1.0),  # intervallo 0.99
+#     (0.0, 2.0),   # intervallo 2.0
+#     (0.1, 1.5),   # intervallo 1.4
+#     (0.05, 0.8),  # intervallo 0.75
+#     (0.02, 1.2)   # intervallo 1.18
+# ]
+# size = 500
+# alpha = 0.2
+# num_replicas = 3
+# collect_gamma_interval_comparison(gamma_configs, size, alpha, num_replicas, sample_size=5, 
+#                                 batch_size=10, path="data/test/comparison_gamma_data.csv")
+
+# # 3. Batch Size Comparison (Standard GD)
+# print("\n=== BATCH SIZE COMPARISON ===")
+# batch_sizes = [1, 5, 10, 20, 50, 100, 200]
+# size = 500
+# alpha = 0.2
+# collect_batch_size_comparison(batch_sizes, size, alpha, sample_size=5,
+#                             path="data/test/comparison_batch_data.csv")
+
+# print("\nTutti i test completati!")
+
+
+# # size
+# size_limit = 200
+# alpha = 0.2
+# num_replicas = 3
+# rgd_collect_size_comparison(size_limit, alpha, num_replicas, sample_size=10, batch_size=10, path="data/rgd/comparison_size_data.csv")
+
+# # alpha
+# alpha_limit = 0.4
+# size = 800
+# num_replicas = 3
+# rgd_collect_alpha_comparison(alpha_limit, size, num_replicas, sample_size=10, batch_size=10, path="data/rgd/comparison_alpha_data.csv")
+
+# # replica
+# replicas_limit = 10
+# size = 800
+# alpha = 0.2
+# rgd_collect_replicas_comparison(replicas_limit, size, alpha, sample_size=10, batch_size=10, path="data/rgd/comparison_replicas_data.csv")
