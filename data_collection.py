@@ -1,11 +1,11 @@
-from comparison_gd import rgd_collect_size_comparison, rgd_collect_alpha_comparison, rgd_collect_replicas_comparison
-from comparison_sa import rsa_collect_size_comparison, rsa_collect_alpha_comparison, rsa_collect_replicas_comparison
-from parameters_sa import rsa_collect_beta_comparison, rsa_collect_gamma_comparison, rsa_collect_annealing_steps_comparison, rsa_collect_mcmc_steps_comparison
-from parameters_gd import collect_learning_rate_comparison, collect_gamma_interval_comparison, collect_batch_size_comparison
+from src.comparison_gd import rgd_collect_size_comparison, rgd_collect_alpha_comparison, rgd_collect_replicas_comparison
+from src.comparison_sa import rsa_collect_size_comparison, rsa_collect_alpha_comparison, rsa_collect_replicas_comparison
+from src.parameters_sa import rsa_collect_beta_comparison, rsa_collect_gamma_comparison, rsa_collect_annealing_steps_comparison, rsa_collect_mcmc_steps_comparison
+from src.parameters_gd import collect_learning_rate_comparison, collect_gamma_interval_comparison, collect_batch_size_comparison
 
 # DATA COLLECTION FOR REPLICATED SIMULATED ANNEALING #
 # Hyperparameters
-# size = 100
+# size = 50
 # alpha = 0.2
 # num_replicas = 3
 # sample_size = 5
@@ -42,17 +42,17 @@ from parameters_gd import collect_learning_rate_comparison, collect_gamma_interv
 #     path="data/test/comparison_mcmc_steps_data.csv"
 # )
 
-# # size
-# size_limit = 200
+# # # size
+# size_limit = 100
 # alpha = 0.2
 # num_replicas = 3
 # rsa_collect_size_comparison(size_limit, alpha, num_replicas, sample_size=5, path="data/comparison_size_data.csv")
 
-# # alpha
-# alpha_limit = 0.4
-# size = 800
-# num_replicas = 3
-# rsa_collect_alpha_comparison(alpha_limit, size, num_replicas, sample_size=5, path="data/comparison_alpha_data.csv")
+# alpha
+alpha_limit = 0.8
+size = 100
+num_replicas = 3
+rsa_collect_alpha_comparison(alpha_limit, size, num_replicas, sample_size=5, path="data/comparison_alpha_data.csv")
 
 # # replica
 # replicas_limit = 10
@@ -64,13 +64,13 @@ from parameters_gd import collect_learning_rate_comparison, collect_gamma_interv
 
 # DATA COLLECTION FOR REPLICATED GRADIENT DESCENT #
 
-# # Hyperparameters
-# # Test delle funzioni
+# Hyperparameters
+# Test delle funzioni
 
 # # 1. Learning Rate Comparison (Standard GD)
 # print("=== LEARNING RATE COMPARISON ===")
 # lr_values = [0.001, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2]
-# size = 500
+# size = 50
 # alpha = 0.2
 # collect_learning_rate_comparison(lr_values, size, alpha, sample_size=5, batch_size=10, 
 #                                 path="data/test/comparison_lr_data.csv")
@@ -104,10 +104,10 @@ from parameters_gd import collect_learning_rate_comparison, collect_gamma_interv
 
 
 # # size
-# size_limit = 200
-# alpha = 0.2
+# size_limit = 500
+# alpha = 0.3
 # num_replicas = 3
-# rgd_collect_size_comparison(size_limit, alpha, num_replicas, sample_size=10, batch_size=10, path="data/rgd/comparison_size_data.csv")
+# rgd_collect_size_comparison(size_limit, alpha, num_replicas, sample_size=50, batch_size=10, path="data/rgd/comparison_size_data.csv")
 
 # # alpha
 # alpha_limit = 0.4

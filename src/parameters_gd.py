@@ -133,7 +133,7 @@ if __name__ == "__main__":
     # 1. Learning Rate Comparison (Standard GD)
     print("=== LEARNING RATE COMPARISON ===")
     lr_values = [0.001, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2]
-    size = 500
+    size = 50
     alpha = 0.2
     collect_learning_rate_comparison(lr_values, size, alpha, sample_size=5, batch_size=10, 
                                    path="data/test/comparison_lr_data.csv")
@@ -149,7 +149,7 @@ if __name__ == "__main__":
         (0.05, 0.8),  # intervallo 0.75
         (0.02, 1.2)   # intervallo 1.18
     ]
-    size = 500
+    size = 50
     alpha = 0.2
     num_replicas = 3
     collect_gamma_interval_comparison(gamma_configs, size, alpha, num_replicas, sample_size=5, 
@@ -158,7 +158,7 @@ if __name__ == "__main__":
     # 3. Batch Size Comparison (Standard GD)
     print("\n=== BATCH SIZE COMPARISON ===")
     batch_sizes = [1, 5, 10, 20, 50, 100, 200]
-    size = 500
+    size = 50
     alpha = 0.2
     collect_batch_size_comparison(batch_sizes, size, alpha, sample_size=5,
                                 path="data/test/comparison_batch_data.csv")

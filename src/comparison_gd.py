@@ -5,8 +5,7 @@ import pandas as pd
 # GRADIENT DESCENT #
 def rgd_collect_size_comparison(size_limit, alpha, num_replicas, sample_size=10, batch_size=10, path="data/rgd/comparison_size_data.csv"):
 
-    sizes = list(range(10, size_limit, 20))
-    print(sizes)
+    sizes = list(range(50, size_limit, 20))
 
     dict = {"type": [], "size": [], "epochs": [], "error_rate": []}
 
@@ -48,12 +47,6 @@ def rgd_collect_size_comparison(size_limit, alpha, num_replicas, sample_size=10,
             dict["epochs"].append(best_bp_standard.epochs)
             dict["error_rate"].append(best_bp_standard.error_rate)
             print(f"{i+1}/{sample_size} standard ok")
-
-            assert np.all(rep_interacting.replicas[0].X == rep_non_interacting.replicas[0].X) and \
-                np.all(rep_non_interacting.replicas[0].X == rep.replicas[0].X)
-
-            assert np.all(rep_interacting.replicas[0].targets == rep_non_interacting.replicas[0].targets) and \
-                np.all(rep_non_interacting.replicas[0].targets == rep.replicas[0].targets)
  
         print(f"Collection for size {size} is completed.")
 

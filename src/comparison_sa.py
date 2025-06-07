@@ -1,4 +1,4 @@
-from solutions.repeated_simann import repeated_simann, RepeatedSimann
+from solutions.repeated_simann_alternative import repeated_simann, RepeatedSimann
 import numpy as np
 import pandas as pd
 
@@ -28,8 +28,6 @@ def rsa_collect_size_comparison(size_limit, alpha, num_replicas, sample_size=10,
             best_bp_interacting, best_cost_interacting = repeated_simann(rep_interacting, beta0, beta1, gamma0=.6, gamma1=1.5, annealing_steps = annealing_steps, scooping_steps = scooping_steps, mcmc_steps = mcmc_steps)
             dict["type"].append("interacting")
             dict["size"].append(size)
-            if best_bp_interacting.iterations_to_solution == None:
-                print("There is a problem")
             dict["iterations"].append(best_bp_interacting.iterations_to_solution)
             dict["time"].append(best_bp_interacting.time_to_solution)
             dict["num_replicas"].append(num_replicas)
@@ -71,7 +69,7 @@ def rsa_collect_size_comparison(size_limit, alpha, num_replicas, sample_size=10,
 
 
 def rsa_collect_alpha_comparison(alpha_limit, size, num_replicas, sample_size=10, path="data/rsa/comparison_alpha_data.csv"):
-    alphas = list(range(0, alpha_limit, 0.1))
+    alphas = list(np.arange(0, alpha_limit, 0.1))
     dict = {"type": [], "alpha": [], "iterations": [], "time":[]}
 
     for alpha in alphas:

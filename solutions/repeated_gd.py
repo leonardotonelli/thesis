@@ -13,6 +13,8 @@ class BinaryPerceptronGD:
         self.targets = np.random.choice([-1,1], size=P)
         self.weights = np.zeros(n)
         self.weights_continuous = np.zeros(n)
+        self.error_rate = np.nan
+        self.epochs = np.nan
 
 
     def init_config(self, seed):
@@ -211,7 +213,7 @@ class RepeatedGD:
 
 
 
-def replicated_gd(probl, lr: float, max_epochs: int, batch_size: int, gamma0, gamma1, beta):
+def replicated_gd(probl, lr: float, max_epochs: int, batch_size: int, gamma0, gamma1, beta, verbose=0):
 
     probl.init_config(batch_size)
     stop = False
@@ -248,18 +250,21 @@ def replicated_gd(probl, lr: float, max_epochs: int, batch_size: int, gamma0, ga
 
         # stopping criterion, either solved the problem or max amount of epochs reached
         if best_cost == 0:
-            print("Problem solved.")
+            if verbose:
+                print("Problem solved.")
             stop = True
             best_replica.error_rate = 0
             best_replica.epochs = epoch
         elif epoch>=max_epochs:
-            print(f"Maximum amount of epochs reached. Best cost reached= {best_cost}")
+            if verbose:
+                print(f"Maximum amount of epochs reached. Best cost reached= {best_cost}")
             stop = True
             best_replica.error_rate = round(best_cost / best_replica.P, 2)
             best_replica.epochs = epoch
         # check whether an epoch has passed
         elif probl.epoch_passed():
-            print(f"Epoch {epoch+1}/{max_epochs} Completed! best loss= {b_cost}")
+            if verbose:
+                print(f"Epoch {epoch+1}/{max_epochs} Completed! best loss= {b_cost}")
             epoch += 1
             gamma = gammas[epoch]
             probl.shuffle()
