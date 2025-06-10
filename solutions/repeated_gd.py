@@ -69,7 +69,7 @@ class BinaryPerceptronGD:
                 batch_grads[idx] = -target * self.X[sample_idx]
             else:
                 batch_grads[idx] = np.zeros(self.n)
-        
+
         self.grad = np.mean(batch_grads, axis=0)
 
 
@@ -213,7 +213,7 @@ class RepeatedGD:
 
 
 
-def replicated_gd(probl, lr: float, max_epochs: int, batch_size: int, gamma0, gamma1, beta, verbose=0):
+def replicated_gd(probl, lr: float, max_epochs: int, batch_size: int, gamma0, gamma1, beta, verbose=0, seed=None, collect=0):
 
     probl.init_config(batch_size)
     stop = False
@@ -223,6 +223,9 @@ def replicated_gd(probl, lr: float, max_epochs: int, batch_size: int, gamma0, ga
     best_cost = np.inf
     best_replica = None
     best_idx = None
+
+    if collect:
+        error_rates = []
 
     while stop is not True:
         
@@ -255,19 +258,28 @@ def replicated_gd(probl, lr: float, max_epochs: int, batch_size: int, gamma0, ga
             stop = True
             best_replica.error_rate = 0
             best_replica.epochs = epoch
+            
         elif epoch>=max_epochs:
             if verbose:
                 print(f"Maximum amount of epochs reached. Best cost reached= {best_cost}")
             stop = True
             best_replica.error_rate = round(best_cost / best_replica.P, 2)
             best_replica.epochs = epoch
+
         # check whether an epoch has passed
         elif probl.epoch_passed():
+
             if verbose:
                 print(f"Epoch {epoch+1}/{max_epochs} Completed! best loss= {b_cost}")
+            if collect:
+                error_rates.append(round(best_cost / best_replica.P, 2))
+            
             epoch += 1
             gamma = gammas[epoch]
             probl.shuffle()
             probl.reset_batch_counter(batch_size)
+
+    if collect:
+        best_replica.collected_error_rates = error_rates
 
     return best_replica
