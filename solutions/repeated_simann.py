@@ -306,16 +306,18 @@ def repeated_simann(probl, beta0, beta1, gamma0, gamma1, annealing_steps = 10, s
                 if verbose:
                     print(f"Solved. After {i} annealing steps.")
                 if collect:
+                    accepted_frequencies.append(accepted_moves/mcmc_steps)
+                    costs.append(best_cost)
                     best_replica.collected_costs = costs
                     best_replica.collected_frequencies = accepted_frequencies
-                best_replica.iterations_to_solution = i
+                best_replica.iterations_to_solution = i+1
                 end_time = time.time()
                 best_replica.time_to_solution = end_time - start_time
                 return (best_replica, best_cost)
         
         if collect:
             accepted_frequencies.append(accepted_moves/mcmc_steps)
-            costs.append(cx)
+            costs.append(best_cost)
 
         if verbose:
             best_replica.display() # TODO
