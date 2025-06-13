@@ -257,14 +257,20 @@ def replicated_gd(probl, lr: float, max_epochs: int, batch_size: int, gamma0, ga
                 print("Problem solved.")
             stop = True
             best_replica.error_rate = 0
-            best_replica.epochs = epoch
+            best_replica.epochs = epoch+1
+            if collect:
+                # error_rates.append(round(best_cost / best_replica.P, 2))
+                error_rates.append(b_cost)
             
         elif epoch>=max_epochs:
             if verbose:
                 print(f"Maximum amount of epochs reached. Best cost reached= {best_cost}")
             stop = True
-            best_replica.error_rate = round(best_cost / best_replica.P, 2)
-            best_replica.epochs = epoch
+            best_replica.epochs = epoch+1
+            if collect:
+                # error_rates.append(round(best_cost / best_replica.P, 2))
+                error_rates.append(b_cost)
+            break
 
         # check whether an epoch has passed
         elif probl.epoch_passed():
@@ -272,7 +278,8 @@ def replicated_gd(probl, lr: float, max_epochs: int, batch_size: int, gamma0, ga
             if verbose:
                 print(f"Epoch {epoch+1}/{max_epochs} Completed! best loss= {b_cost}")
             if collect:
-                error_rates.append(round(best_cost / best_replica.P, 2))
+                # error_rates.append(round(best_cost / best_replica.P, 2))
+                error_rates.append(b_cost)
             
             epoch += 1
             gamma = gammas[epoch]
@@ -281,5 +288,6 @@ def replicated_gd(probl, lr: float, max_epochs: int, batch_size: int, gamma0, ga
 
     if collect:
         best_replica.collected_error_rates = error_rates
-
+        
+    best_replica.error_rate = round(best_cost / best_replica.P, 2)
     return best_replica

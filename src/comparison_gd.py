@@ -59,7 +59,7 @@ def rgd_collect_alpha_comparison(alpha_limit, size, num_replicas, sample_size=10
         gamma1 = 1
         beta = 5
         lr=0.01
-        max_epochs = 500
+        max_epochs = 300
 
         for i in range(sample_size):
 

@@ -193,12 +193,6 @@ class RepeatedSimann:
 
         return replica_index, action
 
-    def compute_delta_distances_from_reference(self, replica_index, ):
-        dist = np.zeros(self.num_replicas)
-        for i, replica in self.replicas:
-            dist[i] = replica.compute_distance(self.reference)
-        return np.sum(dist)
-
     def compute_delta_cost(self, replica_index, action, gamma):
         '''
         compute delta cost for the given replica, move and the reference weights
@@ -249,8 +243,8 @@ class RepeatedSimann:
     
 def repeated_simann(probl, beta0, beta1, gamma0, gamma1, annealing_steps = 10, scooping_steps = 10, mcmc_steps = 10, seed = None, verbose=0, collect=0):
     
-    if seed != None:
-        np.random.seed(seed)
+    # if seed != None:
+    #     np.random.seed(seed)
         
     # initialize all the replicas to same initial condition
     probl.init_config()
@@ -275,8 +269,8 @@ def repeated_simann(probl, beta0, beta1, gamma0, gamma1, annealing_steps = 10, s
     start_time = time.time()
 
     if collect:
-        accepted_frequencies = []
-        costs = []
+        accepted_frequencies = [1.0]
+        costs = [best_cost]
 
     for i in range(annealing_steps): # assume that annealing steps are the same for scooping for now
         accepted_moves = 0

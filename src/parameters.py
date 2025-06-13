@@ -6,11 +6,12 @@ import pandas as pd
 
 def save_extra_data_sa(N, P, num_replicas, beta0, beta1, gamma0, gamma1, path, seed = None):
     probl = RepeatedSimann(N,P,num_replicas, seed=seed)
-    best_replica, best_cost = repeated_simann(probl, beta0, beta1, gamma0, gamma1, annealing_steps = 1000, scooping_steps = 1000, mcmc_steps = 200, seed = seed, verbose=1, collect=1)
+    best_replica, best_cost = repeated_simann(probl, beta0, beta1, gamma0, gamma1, annealing_steps = 1000, scooping_steps = 1000, mcmc_steps = 200, verbose=1, collect=1)
 
     freq = np.array(best_replica.collected_frequencies)
     costs = np.array(best_replica.collected_costs)
-    iterations = range(1, best_replica.iterations_to_solution+1)
+    iterations = range(best_replica.iterations_to_solution+1)
+
 
     df = pd.DataFrame({
         'freq': freq,
@@ -22,16 +23,16 @@ def save_extra_data_sa(N, P, num_replicas, beta0, beta1, gamma0, gamma1, path, s
     print(f"\n CSV saved to: {path}")
 
 
-def save_extra_data_gd(N, P, num_replicas, lr, gamma0, gamma1, path, seed = None):
+def save_extra_data_gd(N, P, num_replicas, lr, path, seed = None, gamma0=0, gamma1=0):
     probl = RepeatedGD(N,P,num_replicas, seed)
-    best_replica = replicated_gd(probl, lr=lr, max_epochs=1000, batch_size=10, gamma0=gamma0, gamma1=gamma1, beta=0, verbose=0, collect=1)
+    best_replica = replicated_gd(probl, lr=lr, max_epochs=1000, batch_size=10, gamma0=gamma0, gamma1=gamma1, beta=0, verbose=1, collect=1)
 
     error_rates = np.array(best_replica.collected_error_rates)
     epochs = range(1, best_replica.epochs+1)
 
     df = pd.DataFrame({
-        'error_rates': error_rates,
-        'epochs': epochs
+        'error_rate': error_rates,
+        'epoch': epochs
     })
 
     df.to_csv(path, index=False)

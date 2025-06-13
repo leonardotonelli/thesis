@@ -1,6 +1,6 @@
 from solutions.repeated_gd import replicated_gd, RepeatedGD
-from solutions.repeated_simann_alt2  import RepeatedSimann_alt, repeated_simann_alt
-from solutions.repeated_simann_alternative  import RepeatedSimann_alt, repeated_simann_alt
+from cache.additional_versions.repeated_simann_alt2  import RepeatedSimann_alt, repeated_simann_alt
+from cache.additional_versions.repeated_simann_alternative  import RepeatedSimann_alt, repeated_simann_alt
 from solutions.repeated_simann  import RepeatedSimann, repeated_simann
 
 # SIMULATED ANNEALING ##

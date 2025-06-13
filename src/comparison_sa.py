@@ -1,4 +1,4 @@
-from solutions.repeated_simann_alt2 import repeated_simann_alt, RepeatedSimann_alt
+from cache.additional_versions.repeated_simann_alt2 import repeated_simann_alt, RepeatedSimann_alt
 from solutions.repeated_simann import repeated_simann, RepeatedSimann
 import numpy as np
 import pandas as pd
